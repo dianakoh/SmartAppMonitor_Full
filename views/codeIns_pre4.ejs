@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Code Instrumentation</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.js" integrity="sha256-WpOohJOqMqqyKL9FccASB9O0KwACQJpFTUBLTYOVvVU=" crossorigin="anonymous"></script>
+	<link rel="stylesheet" type="text/css" href="css/codeIns.css"/>
+	<script src="js/jquery-linedtextarea.js"></script>
+	<script>
+		$(function() {
+			$(".lined").linedtextarea(
+				{selectedLine: 1}
+			);
+		});
+	</script>
+
+</head>
+<body onload="check();">
+<header id="pageHeader"><h2>Code Instrumentation</h2></header>
+<article id="mainArticle">
+    <!--<div id="mainContents">-->
+        <form action="http://203.252.195.182:3030/code/checkOption" method="POST" id="codeForm">
+            <div id="originCode">
+            <h4 id="code1">Enter Code</h4>
+            <% if (oricode) { %>
+                <textarea class="lined" style="resize:none;display:inline;margin:0;font-size:9pt;width:100%;height:95%" name="content"><%=oricode%></textarea>
+            <% } else { %>
+            <textarea class="lined" style="resize:none;display:inline;margin:0;font-size:9pt;width:100%;height:95%" name="content"></textarea>
+            <% } %>
+            </div>
+            <% if (checkOption) { %>
+            <div id="checkOptionDiv" style="display:none"><%=checkOption%></div>
+            <% } else { %>
+            <div id="checkOptionDiv" style="display:none"></div>
+            <% } %>
+            <div id="instrumentedCode">
+            <h4 id="code2">Instrumented Code</h4>
+            <% if (concode) { %>
+                <textarea class="lined" style="resize:none;display:inline;margin:0;font-size:9pt;width:100%; height:95%" name="content2"><%=concode%></textarea>
+            <% } else { %>
+            <textarea class="lined" style="resize:none;display:inline;margin:0;font-size:9pt;width:100%; height:95%" name="content2"></textarea>
+            <% } %>
+            </div>
+            <div id="checkButtonDiv" style="margin:0;padding:0;padding-left:10px;"><input type="submit" value="check option"></div>
+        </form>
+   <!-- </div>-->
+        <div id="checkOptionDiv2"></div>
+</article>
+<footer id="pageFooter">Footer</footer>
+</body>
+<script>
+    function check() {
+        var a = document.getElementById("checkOptionDiv").innerText;
+        if(a) {
+            var b = a.split('\n');
+            var d = [];
+            var events = [];
+            var actions = [];
+            var methods = [];
+            var list_string = "<form action=\"http://203.252.195.182:3030/code/convert\" method=\"POST\"><ul style=\"list-style:none\">";
+            for(var i = 0; i < b.length-1; i++) {
+                var c = b[i].substring(1, b[i].length-1);
+                d.push(c);
+
+            }
+            for(var i = 0; i < d.length; i++) {
+                var temp = d[i].split(',');
+                console.log(temp[0]);
+                if(temp[0] == "type:event") {
+                    var index = temp[1].indexOf(':');
+                    events.push(temp[1].substring(index+1));
+                }
+                if(temp[0] == "type:action") {
+                    var index = temp[1].indexOf(':');
+                    actions.push(temp[1].substring(index+1));
+                }
+                if(temp[0] == "type:method") {
+                    var index = temp[1].indexOf(':');
+                    methods.push(temp[1].substring(index+1));
+                }
+            }
+            for(var i = 0; i < events.length; i++) {
+                if(i == 0) list_string += "<li>events list</li>";
+                list_string += "<li><input type=\"checkbox\" name=\"event" + i + "\" value=\"" + events[i] + "\">" + events[i] + "</li>";
+            }
+            for(var i = 0; i < actions.length; i++) {
+                if(i == 0) list_string += "<li>actions list</li>";
+                list_string += "<li><input type=\"checkbox\" name=\"action" + i + "\" value=\"" + actions[i] + "\">" + actions[i] + "</li>";
+            }
+            for(var i = 0; i < methods.length; i++) {
+                if(i == 0) list_string += "<li>methods list</li>";
+                list_string += "<li><input type=\"checkbox\" name=\"method" + i + "\" value=\"" + methods[i] + "\">" + methods[i] + "</li>";
+            }
+            list_string += "</ul>";
+            list_string += "<input type=\"submit\" value=\"instrumentation\"></form>";
+            document.getElementById("checkOptionDiv2").innerHTML = list_string;
+
+        }
+    }
+</script>
+
+</html>

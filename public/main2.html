@@ -1,0 +1,1216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" charset="UTF-8">
+    <title>SmartApp-Monitor</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="//code.jquery.com/jquery.min.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
+    <link rel="apple-touch-icon" sizes="180x180" href="image/monitoring_Logo.jpg"/>
+    <link rel="shortcut icon" sizes="192x192" href="image/monitoring_Logo.jpg"/>
+    <link rel="stylesheet" href="css/mainpagestyle2.css">
+</head>
+<body>
+
+<div class="header">
+    <i class="fa fa-desktop fa-2x"></i><h1>SmartApp Monitor</h1>
+</div>
+
+<div class="row">
+    <div class="col-3 col-s-3 menu">
+        <ul>
+            <li id="codeInsLink"></li>
+            <li><a href="https://graph.api.smartthings.com">SmartThings IDE</a></li>
+        </ul>
+    </div>
+
+    <div class="col-6 col-s-9">
+        <div id="mainContents">
+            <div id="applist">
+                <h3 style="color:darkgoldenrod">[appList]</h3>
+            </div>
+            <div id="appinfo">
+                <h3 style="color:darkgoldenrod" id="trace">[trace data]</h3>
+                <div id="flowinfo"></div>
+                <div id="paging"></div>
+            </div>
+            <div id="eventactiongraph">
+                <h3 style="color:darkgoldenrod">[Monthly data occurrence graph]</h3>
+                <canvas id="myChart"></canvas>
+            </div>
+            <div id="provenance">
+                <h3 style="color:darkgoldenrod">[provenance]</h3>
+                <div id="proveInfo"></div>
+            </div>
+        </div>
+        <div id="realtime">
+            <h3 style="color:darkgoldenrod">[realtime]</h3>
+        </div>
+    </div>
+
+    <div class="col-3 col-s-12">
+        <div class="aside">
+            <i class="fa fa-user-circle fa-2x"></i>
+            <p id="userId">ID:</p>
+            <button onclick=logout();>logout</button>
+        </div>
+    </div>
+</div>
+
+<div class="footer">
+
+</div>
+
+<script src="js/getJsonData.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js"></script>
+<script>
+    var smartAppInfo;
+    var myChart;
+    var patternNum1 = 0;
+    var patternNum2 = 0;
+    document.getElementById("codeInsLink").innerHTML = "<a href=\"http://" + ipAddress + port2 + "/code\">Code Instrument</a>"; //<a href="http://203.252.195.182:3030/code">Code Instrument</a>
+    document.getElementById("userId").innerHTML += " " + sessionStorage.getItem("userId");
+    getJSON('http://' + ipAddress + port1 + '/smartapps' + '/' + sessionStorage.getItem("userId"),  function(err, data) {
+        if(err != null) console.error(err);
+        else {
+            smartAppInfo = data;
+            var app = "";
+            var app2 = "";
+            var text = "<ul>";
+            for(var i = 0; i < data.data.length; i++){
+                if(data.data[i].appName != app) {
+                    app = data.data[i].appName;
+                    app2 = "\"" + app + "\"";
+                    var detail = data.data[i].detail;
+                    if(detail != null) {
+                        detail = "\"" + detail.substring(1, detail.length - 1) + "\"";
+                    }
+                    text += "<li><h4 onclick=showInfo(this.innerHTML," + detail+ ");>" + app + "</h4>"; // + "<h4 style='display:inline-block' onclick=deleteApp(" + app2 + ");>&nbsp; &nbsp; &nbsp; &nbsp;X</h4></li>";
+                }
+            }
+            text += "</ul>";
+            document.getElementById("applist").innerHTML += text;
+        }
+    });
+
+
+    var appName = "";
+    var socket = io('http://' + ipAddress + port1, {
+        query:  'userId='+sessionStorage.getItem("userId")
+    });
+    socket.on('send data event', function(data) {
+        showRealtimeInfo(data)
+    });
+
+    function showRealtimeInfo(data) {
+        var text = "";
+        if(appName != data.appName) {
+            text += "<h5>" + data.appName + "</h5>";
+            appName = data.appName
+        }
+        var type = data.methodType;
+        var name = data.methodName;
+        var capability = data.capability;
+        var deviceName = data.deviceName;
+        if(deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length-1);
+        var datetime = data.createdAt;
+
+        if(type == "handlerMethod") {
+            text += "<span class='elementSpan'><ul>";
+            text += "<li style='color:lightcoral;font-weight:bold'>[handler]</li>";
+            text += "<li>name: " + name + "</li>";
+            //text += "<li>occur: " + datetime + "</li>";
+            text += "</ul></span>";
+            text += "<span class='arrowSpan'>-></span>";
+        }
+
+        if(type == "methodCall") {
+
+        }
+        if(type == "event") {
+            var img_path;
+            if(capability == "time")
+                img_path = "\"image/" + capability + ".png\"";
+            else {
+                    img_path = "\"image/" + capability + "_" + name + ".png\"";
+            }
+            text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+            if(parseInt(name)) {
+                text += "<li style='color:lightcoral'>" + name + "</li>";
+            }
+            else {
+                text += "<li><img src=" + img_path + ">" + "</li>";
+            }
+            text += "<li>name: " + name + "</li>";
+            text += "<li>cap: " + capability + "</li>";
+            text += "<li>device: " + deviceName + "</li>";
+            //text += "<li>occur: " + datetime + "</li>";
+            text += "</ul></a></span>";
+            text += "<span class='arrowSpan'>-></span>";
+        }
+        if(type == "action") {
+            var img_path = "\"image/" + capability + "_" + name + ".png\"";
+            text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+            text += "<li><img src=" + img_path + ">" + "</li>";
+            text += "<li>name: " + name + "</li>";
+            text += "<li>cap: " + capability + "</li>";
+            text += "<li>device: " + deviceName + "</li>";
+            //text += "<li>occur: " + datetime + "</li>";
+            text += "</ul></a></span>";
+            text += "<span class='arrowSpan'>-></span>";
+        }
+
+        document.getElementById("realtime").innerHTML += text;
+
+    }
+    function logout() {
+        sessionStorage.removeItem("userId");
+        window.location.href = "index.html";
+    }
+
+    function showInfo(obj, detail) {
+        sessionStorage.setItem('appName', obj);
+        showFlow(obj, detail);
+        showGraph(obj);
+    }
+
+    var eventArr;
+    var t_eventArr = [];
+    var actionArr;
+    var t_actionArr = [];
+    var eventDevice = [];
+    var actionDevice = [];
+    var deviceEventArr = {};
+    var deviceActionArr = {};
+    function showFlow(obj, detail) {
+        var flowInfo;
+        eventArr = [];
+        t_eventArr = [];
+        actionArr = [];
+        t_actionArr = [];
+        eventDevice = [];
+        actionDevice = [];
+        deviceEventArr = {};
+        deviceActionArr = {};
+        document.getElementById("trace").innerHTML =  obj + " trace data";
+        getJSON('http://' + ipAddress + port1 + '/flowsbyUser' + '/' + obj + '/' + sessionStorage.getItem('userId'), function(err, data) {
+            if(err != null) console.error(err);
+            else {
+                flowInfo = data.data;
+                console.log(flowInfo);
+                for(var i = 0; i < flowInfo.length; i++) {
+                    if(flowInfo[i].methodType == "event") {
+                        //eventArr.push(flowInfo[i].methodName);
+                        eventDevice.push(flowInfo[i].deviceName);
+                        t_eventArr.push({methodName:flowInfo[i].methodName, deviceName:flowInfo[i].deviceName});
+                    }
+                    if(flowInfo[i].methodType == "action") {
+                        //actionArr.push(flowInfo[i].methodName);
+                        actionDevice.push(flowInfo[i].deviceName);
+                        t_actionArr.push({methodName:flowInfo[i].methodName, deviceName:flowInfo[i].deviceName});
+                    }
+                    if(flowInfo[i].methodType == "event") {
+                        deviceEventArr[flowInfo[i].methodName] = flowInfo[i].deviceName;
+                    }
+                    if(flowInfo[i].methodType == "action") {
+                        deviceActionArr[flowInfo[i].methodName] = flowInfo[i].deviceName;
+                        //console.log(deviceActionArr);
+                    }
+                }
+                /*let filter = eventArr.filter((item, idx, array) => {
+                    return array.indexOf(item) === idx;
+                });
+                eventArr = filter;
+                filter = actionArr.filter((item, idx, array) => {
+                    return array.indexOf(item) === idx;
+                });
+                actionArr = filter;*/
+                eventArr = remove_duplicates(t_eventArr);
+                actionArr = remove_duplicates(t_actionArr);
+                let filter = eventDevice.filter((item, idx, array) => {
+                    return array.indexOf(item) === idx;
+                });
+                eventDevice = filter;
+                filter = actionDevice.filter((item, idx, array) => {
+                    return array.indexOf(item) === idx;
+                });
+                actionDevice = filter;
+                paging(1, flowInfo, detail);
+                showFlowData(1, flowInfo, detail);
+            }
+        });
+    }
+
+    function remove_duplicates(objectsArray) {
+        var usedObjects = {};
+
+        for (var i=objectsArray.length - 1;i>=0;i--) {
+            var so = JSON.stringify(objectsArray[i]);
+
+            if (usedObjects[so]) {
+                objectsArray.splice(i, 1);
+
+            } else {
+                usedObjects[so] = true;
+            }
+        }
+
+        return objectsArray;
+
+    }
+
+    function paging(currentPage, data, detail) {
+        var dataLength = data.length;
+        var perPage = 15;
+        var totalPage = Math.ceil(dataLength/perPage);
+        var pageGroup = Math.ceil(currentPage/perPage);
+
+        var last = pageGroup * perPage;
+        if(last > totalPage) last = totalPage;
+        var first = last - (perPage-1);
+        if(first < 1) first = 1;
+        var next = last+1;
+        var prev = first-1;
+
+        var html = "";
+        html +=  "<a href=# id='first'>first</a> ";
+        if(prev > 0)
+            html += "<a href=# id='prev'><</a> ";
+        for(var i=first; i <= last; i++){
+            html += "<a href='#' id=" + i + ">" + i + "</a> ";
+        }
+        if(last < totalPage)
+            html += "<a href=# id='next'>></a> ";
+        html +=  "<a href=# id='last'>last</a>";
+
+        $("#paging").html(html);
+        $("#paging a").css("color", "black");
+        $("#paging a#" + currentPage).css({"text-decoration":"none", "color":"red", "front-weight":"bold"});
+
+        $("#paging a").click(function(){
+            var $item = $(this);
+            var $id = $item.attr("id");
+            var selectedPage = $item.text();
+
+            if($id == "next")    selectedPage = next;
+            if($id == "prev")    selectedPage = prev;
+            if($id == "first") selectedPage = "1";
+            if($id == "last") selectedPage = totalPage;
+            paging(selectedPage, data, detail);
+            showFlowData(selectedPage, data, detail);
+        });
+
+    }
+
+    function showFlowData(currentPage, data, detail) {
+        var detail_ori = detail;
+        var perPage = 15;
+        var dataLength = data.length;
+        var startItem = (currentPage-1) * perPage;
+        var lastItem = (currentPage) * perPage;
+        if(lastItem > dataLength) lastItem = dataLength;
+
+        var text = "";
+        var appName = "\"" + encodeURI(data[0].appName) + "\"";
+        if(detail != null) {
+            detail = "\"" + detail + "\"";
+            //var detail_sub = detail_ori.split(',');
+            var eventSub = [];
+            var actionSub = [];
+            var methodSub = [];
+            /*for (var i = 0; i < detail_sub.length; i++) {
+                if (detail_sub[i].includes("event")) {
+                    eventSub.push(detail_sub[i].split(':')[1]);
+                }
+                if (detail_sub[i].includes("action")) {
+                    actionSub.push(detail_sub[i].split(':')[1]);
+                }
+                if (detail_sub[i].includes("method")) {
+                    methodSub.push(detail_sub[i].split(':')[1]);
+                }
+            }*/
+
+            for(var i = 0; i < eventArr.length; i++) {
+                eventSub.push(eventArr[i].deviceName + "-" + eventArr[i].methodName);
+            }
+            for(var i = 0; i < actionArr.length; i++) {
+                actionSub.push(actionArr[i].deviceName + "-" + actionArr[i].methodName);
+            }
+
+            text += "<div class=\"topnav\" id=\"myTopnav\">";
+            text += "<div class='dropdown'><button class='dropbtn' onclick=showEvent(" + appName + "," + "\"event\"," + detail + ");>Event<i class='fa fa-caret-down'></i></button>";
+            text += "<div class='dropdown-content'>";
+            for (var i = 0; i < eventSub.length; i++) {
+                text += "<a href=\"javascript:void(0);\" onclick=showEvent2(" + appName + "," + "\"event\",\"" + eventSub[i] + "\"," + detail + ");>" + eventSub[i] + "</a>";
+            }
+            text += "</div></div>";
+            text += "<div class='dropdown'><button class='dropbtn' onclick=showEvent(" + appName + "," + "\"action\"," + detail + ");>Action<i class='fa fa-caret-down'></i></button>";
+            text += "<div class='dropdown-content'>";
+            for (var i = 0; i < actionSub.length; i++) {
+                text += "<a href=\"javascript:void(0);\" onclick=showEvent2(" + appName + "," + "\"action\",\"" + actionSub[i] + "\"," + detail + ");>" + actionSub[i] + "</a>";
+            }
+            text += "</div></div>";
+
+            text += "<div class='dropdown'><button class='dropbtn'>Pattern<i class='fa fa-caret-down'></i></button>";
+            text += "<div class='dropdown-content' id='patternDropdown'>";
+            text += "<p>Find a Pattern</p>";
+            text += "<div id='pattern1'>";
+            text += "<select id='fPattern" + patternNum1 + "'" + " name='fPattern' onchange='addDeviceOptions(\"fPattern" + patternNum1 + "\");'><option value='undefined' selected>--Selected Option--</option><option value='event'>event</option><option value='action'>action</option></select>";
+            text += "<select id='fDevice" + patternNum1 + "'" + " onchange='addNameOptions(\"fDevice" + patternNum1 + "\");'></select>";
+            text += "<select id='fName" + patternNum1 + "'" + "></select>";
+            text += "</div>";
+            text += "<button onclick='addPattern1();'>+</button>";
+            text += "<p>---></p>";
+            text += "<div id='pattern2'>";
+            text += "<select id='pPattern" + patternNum2 + "'" + " name='pPattern' onchange='addDeviceOptions2(\"pPattern" + patternNum2 + "\");'><option value='undefined' selected>--Selected Option--</option><option value='event'>event</option><option value='action'>action</option></select>";
+            text += "<select id='pDevice" + patternNum2 + "'" + " onchange='addNameOptions2(\"pDevice" + patternNum2 + "\");'></select>";
+            text += "<select id='pName" + patternNum2 + "'" + "></select>";
+            text += "</div>";
+            text += "<button onclick='addPattern2();'>+</button>";
+            text += "<button style='display: block' onclick='patternSearch();'>search</button>";
+            text += "</div></div>";
+            text += "</div>";
+        }
+        else {
+            text += "<div class=\"topnav\" id=\"myTopnav\">";
+            text += "<div class='dropdown'><button class='dropbtn' onclick=showEvent(" + appName + "," + "\"event\"," + detail + ");>Event<i class='fa fa-caret-down'></i></button>";
+            text += "<div class='dropdown-content'>";
+            text += "</div></div>";
+            text += "<div class='dropdown'><button class='dropbtn' onclick=showEvent(" + appName + "," + "\"action\"," + detail + ");>Action<i class='fa fa-caret-down'></i></button>";
+            text += "<div class='dropdown-content'>";
+            text += "</div></div>";
+
+            text += "<div class='dropdown'><button class='dropbtn'>Pattern<i class='fa fa-caret-down'></i></button>";
+            text += "<div class='dropdown-content' id='patternDropdown'>";
+            text += "<p>Find a Pattern</p>";
+            text += "<div id='pattern1'>";
+            text += "<select id='fPattern" + patternNum1 + "'" + " name='fPattern' onchange='addDeviceOptions(\"fPattern" + patternNum1 + "\");'><option value='undefined' selected>--Selected Option--</option><option value='event'>event</option><option value='action'>action</option></select>";
+            text += "<select id='fDevice" + patternNum1 + "'" + " onchange='addNameOptions(\"fDevice" + patternNum1 + "\");'></select>";
+            text += "<select id='fName" + patternNum1 + "'" + "></select>";
+            text += "</div>";
+            text += "<button style='display:block;' onclick='addPattern1();'>+</button>";
+            text += "<p>---></p>";
+            text += "<div id='pattern2'>";
+            text += "<select id='pPattern" + patternNum2 + "'" + " name='pPattern' onchange='addDeviceOptions2(\"pPattern" + patternNum2 + "\");'><option value='undefined' selected>--Selected Option--</option><option value='event'>event</option><option value='action'>action</option></select>";
+            text += "<select id='pDevice" + patternNum2 + "'" + " onchange='addNameOptions2(\"pDevice" + patternNum2 + "\");'></select>";
+            text += "<select id='pName" + patternNum2 + "'" + "></select>";
+            text += "</div>";
+            text += "<button style='display:block;' onclick='addPattern2();'>+</button>";
+            text += "<button style='display: block' onclick='patternSearch();'>search</button>";
+            text += "</div></div>";
+            text += "</div>";
+
+        }
+
+        for(var i = startItem; i < lastItem; i++) {
+            var type = data[i].methodType;
+            var name = data[i].methodName;
+            var capability = data[i].capability;
+            var deviceName = data[i].deviceName;
+            if(deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length-1);
+            var datetime = data[i].createdAt.substring(0,19);
+            //var d = datetime.split("T");
+            //var d2 = d[1].split(".");
+            //var datetime2 = d[0] + "-" + d2[0];
+            //var datetime2 = new Date(datetime);
+            //datetime2.setHours(datetime2.getHours()+9);
+
+            if(type == "handlerMethod") {
+                text += "<span class='elementSpan'><ul>";
+                text += "<li style='color:lightcoral;font-weight:bold'>[handler]</li>";
+                text += "<li>name: " + name + "</li>";
+                //text += "<span style='display:none'><ul>";
+                text += "<li>occur: " + datetime + "</li>";
+                //text += "</ul></span>";
+                text += "</ul></span>";
+                text += "<span class='arrowSpan'>-></span>";
+            }
+
+            if(type == "methodCall") {
+                /*text += "<span class='elementSpan'><ul>";
+                text += "<li>[" + type + "]</li>";
+                text += "<li>name: " + name + "</li>";
+                text += "<li>occur: " + datetime + "</li>";
+                text += "</ul></span>";
+                text += "<span class='arrowSpan'>-></span>";*/
+            }
+            if(type == "event") {
+                var img_path;
+                if(capability == "time")
+                    img_path = "\"image/" + capability + ".png\"";
+                else
+                    img_path = "\"image/" + capability + "_" + name + ".png\"";
+                text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+                text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                if(parseInt(name)) {
+                    text += "<li style='color:lightcoral'>" + name + "</li>";
+                }
+                else
+                    text += "<li><img src=" + img_path + ">" + "</li>";
+                text += "<li>name: " + name + "</li>";
+                text += "<li>cap: " + capability + "</li>";
+                text += "<li>device: " + deviceName + "</li>";
+                text += "<li>occur: " + datetime + "</li>";
+                text += "</ul></a></span>";
+                text += "<span class='arrowSpan'>-></span>";
+            }
+            if(type == "action") {
+                var img_path = "\"image/" + capability + "_" + name + ".png\"";
+                text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+                text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                text += "<li><img src=" + img_path + ">" + "</li>";
+                text += "<li>name: " + name + "</li>";
+                text += "<li>cap: " + capability + "</li>";
+                text += "<li>device: " + deviceName + "</li>";
+                text += "<li>occur: " + datetime + "</li>";
+                text += "</ul></a></span>";
+                text += "<span class='arrowSpan'>-></span>";
+            }
+        }
+        document.getElementById("flowinfo").innerHTML = text;
+    }
+
+    var fpatternType;
+    var ppatternType;
+    var fpatternSelected = [];
+    var ppatternSelected = [];
+
+    function addDeviceOptions(type) {
+        var text = "";
+        var selectedValue = $('#' + type).val();
+        if(selectedValue == "event") {
+            $('#fDevice' + type.toString().charAt(type.toString().length-1)).empty();
+
+            var option = $("<option value='undefined' selected>--Selected Option--</option>");
+            $('#fDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            for(var count = 0; count < eventDevice.length; count++){
+                option = $("<option>"+eventDevice[count]+"</option>");
+                $('#fDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            }
+            /*for(var count = 0; count < eventArr.length; count++){
+                option = $("<option>"+eventArr[count].deviceName+"</option>");
+                $('#fDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            }*/
+            /*출처: https://yamea-guide.tistory.com/entry/제이쿼리-동적으로-select-option-추가-하기empty와-append [기타치는 개발자의 야매 가이드]*/
+        }
+        else if(selectedValue == "action") {
+            $('#fDevice' + type.toString().charAt(type.toString().length-1)).empty();
+
+            var option = $("<option value='undefined' selected>--Selected Option--</option>");
+            $('#fDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            for(var count = 0; count < actionDevice.length; count++){
+                option = $("<option>"+actionDevice[count]+"</option>");
+                $('#fDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            }
+            /*for(var count = 0; count < actionArr.length; count++){
+                option = $("<option>"+actionArr[count].deviceName+"</option>");
+                $('#fDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            }*/
+        }
+    }
+
+    function addNameOptions(type) {
+        var text = "";
+        var selectedType = $('#fPattern' + type.toString().charAt(type.toString().length-1)).val();
+        var selectedValue = $('#' + type).val();
+        if(selectedType == "event") {
+            $('#fName' + type.toString().charAt(type.toString().length - 1)).empty();
+            var option = $("<option value='undefined' selected>--Selected Option--</option>");
+            $('#fName' + type.toString().charAt(type.toString().length - 1)).append(option);
+            //option = $("<option>" + deviceEventArr[selectedValue] + "</option>");
+            //option = $("<option>" + deviceEventArr.keys(selectedValue) + "</option>");
+            /*for(var key in deviceEventArr) {
+                if(deviceEventArr.hasOwnProperty(key)) {
+                    if(selectedValue == deviceEventArr[key]) {
+                        option = $("<option>" + key + "</option>");
+                        $('#fName' + type.toString().charAt(type.toString().length - 1)).append(option);
+                    }
+                }
+            }*/
+            /*for(var count = 0; count < deviceEventArr.length; count++) {
+            var option = $("<option>"+deviceEventArr[selectedValue]+"</option>");
+            $('#fName' + type.toString().charAt(type.toString().length-1)).append(option);
+        }*/
+            for(var count = 0; count < eventArr.length; count++){
+                if(eventArr[count].deviceName == selectedValue) {
+                    option = $("<option>" + eventArr[count].methodName + "</option>");
+                    $('#fName' + type.toString().charAt(type.toString().length - 1)).append(option);
+                }
+            }
+
+        }
+        if(selectedType == "action") {
+            $('#fName' + type.toString().charAt(type.toString().length - 1)).empty();
+            var option = $("<option value='undefined' selected>--Selected Option--</option>");
+            $('#fName' + type.toString().charAt(type.toString().length - 1)).append(option);
+            //option = $("<option>" + deviceActionArr[selectedValue] + "</option>");
+            //$('#fName' + type.toString().charAt(type.toString().length - 1)).append(option);
+            /*for(var key in deviceActionArr) {
+                if(deviceActionArr.hasOwnProperty(key)) {
+                    if(selectedValue == deviceActionArr[key]) {
+                        option = $("<option>" + key + "</option>");
+                        $('#fName' + type.toString().charAt(type.toString().length - 1)).append(option);
+                    }
+                }
+            }*/
+            for(var count = 0; count < actionArr.length; count++){
+                if(actionArr[count].deviceName == selectedValue) {
+                    option = $("<option>" + actionArr[count].methodName + "</option>");
+                    $('#fName' + type.toString().charAt(type.toString().length - 1)).append(option);
+                }
+            }
+        }
+    }
+
+    function addDeviceOptions2(type) {
+        var text = "";
+        var selectedValue = $('#' + type).val();
+        if(selectedValue == "event") {
+            $('#pDevice' + type.toString().charAt(type.toString().length-1)).empty();
+            var option = $("<option value='undefined' selected>--Selected Option--</option>");
+            $('#pDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            for(var count = 0; count < eventDevice.length; count++){
+                option = $("<option>"+eventDevice[count]+"</option>");
+                $('#pDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            }
+            /*for(var count = 0; count < eventArr.length; count++){
+                option = $("<option>"+eventArr[count].deviceName+"</option>");
+                $('#pDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            }*/
+            /*출처: https://yamea-guide.tistory.com/entry/제이쿼리-동적으로-select-option-추가-하기empty와-append [기타치는 개발자의 야매 가이드]*/
+        }
+        else if(selectedValue == "action") {
+            $('#pDevice' + type.toString().charAt(type.toString().length-1)).empty();
+            var option = $("<option value='undefined' selected>--Selected Option--</option>");
+            $('#pDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            for(var count = 0; count < actionDevice.length; count++){
+                option = $("<option>"+actionDevice[count]+"</option>");
+                $('#pDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            }
+            /*for(var count = 0; count < actionArr.length; count++){
+                option = $("<option>"+actionArr[count].deviceName+"</option>");
+                $('#pDevice' + type.toString().charAt(type.toString().length-1)).append(option);
+            }*/
+        }
+    }
+    function addNameOptions2(type) {
+        var text = "";
+        var selectedType = $('#pPattern' + type.toString().charAt(type.toString().length-1)).val();
+        var selectedValue = $('#' + type).val();
+        if(selectedType == "event") {
+            $('#pName' + type.toString().charAt(type.toString().length - 1)).empty();
+            var option = $("<option value='undefined' selected>--Selected Option--</option>");
+            $('#pName' + type.toString().charAt(type.toString().length - 1)).append(option);
+            //option = $("<option>" + deviceEventArr[selectedValue] + "</option>");
+            //$('#pName' + type.toString().charAt(type.toString().length - 1)).append(option);
+            /*for(var key in deviceEventArr) {
+                if(deviceEventArr.hasOwnProperty(key)) {
+                    if(selectedValue == deviceEventArr[key]) {
+                        option = $("<option>" + key + "</option>");
+                        $('#pName' + type.toString().charAt(type.toString().length - 1)).append(option);
+                    }
+                }
+            }*/
+            for(var count = 0; count < eventArr.length; count++){
+                if(eventArr[count].deviceName == selectedValue) {
+                    option = $("<option>" + eventArr[count].methodName + "</option>");
+                    $('#pName' + type.toString().charAt(type.toString().length - 1)).append(option);
+                }
+            }
+        }
+        if(selectedType == "action") {
+            $('#pName' + type.toString().charAt(type.toString().length - 1)).empty();
+            var option = $("<option value='undefined' selected>--Selected Option--</option>");
+            $('#pName' + type.toString().charAt(type.toString().length - 1)).append(option);
+            //option = $("<option>" + deviceActionArr[selectedValue] + "</option>");
+            //$('#pName' + type.toString().charAt(type.toString().length - 1)).append(option);
+            /*for(var key in deviceActionArr) {
+                if(deviceActionArr.hasOwnProperty(key)) {
+                    if(selectedValue == deviceActionArr[key]) {
+                        option = $("<option>" + key + "</option>");
+                        $('#pName' + type.toString().charAt(type.toString().length - 1)).append(option);
+                    }
+                }
+            }*/
+            for(var count = 0; count < actionArr.length; count++){
+                if(actionArr[count].deviceName == selectedValue) {
+                    option = $("<option>" + actionArr[count].methodName + "</option>");
+                    $('#pName' + type.toString().charAt(type.toString().length - 1)).append(option);
+                }
+            }
+        }
+    }
+
+    function addPattern1() {
+        patternNum1++;
+        var text = "<p>or</p>";
+        text += "<select id='fPattern" + patternNum1 + "'" + " name='fPattern' onchange='addDeviceOptions(\"fPattern" + patternNum1 + "\");'><option value='undefined' selected>--Selected Option--</option><option value='event'>event</option><option value='action'>action</option></select>";
+        text += "<select id='fDevice" + patternNum1 + "'" + " onchange='addNameOptions(\"fDevice" + patternNum1 + "\");'></select>";
+        text += "<select id='fName" + patternNum1 + "'" + "></select>";
+        document.getElementById('pattern1').insertAdjacentHTML("afterend", text);
+    }
+    function addPattern2() {
+        patternNum2++;
+        var text = "<p>or</p>";
+        text += "<select id='pPattern" + patternNum2 + "'" + " name='pPattern' onchange='addDeviceOptions2(\"pPattern" + patternNum2 + "\");'><option value='undefined' selected>--Selected Option--</option><option value='event'>event</option><option value='action'>action</option></select>";
+        text += "<select id='pDevice" + patternNum2 + "'" + " onchange='addNameOptions2(\"pDevice" + patternNum2 + "\");'></select>";
+        text += "<select id='pName" + patternNum2 + "'" + "></select>";
+        document.getElementById('pattern2').insertAdjacentHTML("afterend", text);
+    }
+    function patternSearch() {
+        var url = 'http://' + ipAddress + port1 + '/flowsbyUserFindPattern' + '/' + sessionStorage.getItem('appName') + '/' + sessionStorage.getItem('userId');
+        var text = "";
+        var patternText = "";
+        for(var i = 0; i <= patternNum1; i++) {
+            var fp = document.getElementById("fPattern" + i.toString()).value;
+            var fd = document.getElementById("fDevice" + i.toString()).value;
+            var fn = document.getElementById("fName" + i.toString()).value;
+            if(i == 0) {
+                url += '/pattern1/';
+                text += fp + "=" + fd + "," + fn;
+            }
+            else
+                text += '|' + fp + "=" + fd + "," + fn;
+        }
+        url += text;
+        patternText += text;
+        text = "";
+        for(var i = 0; i <= patternNum2; i++) {
+            var pp = document.getElementById("pPattern" + i.toString()).value;
+            var pd = document.getElementById("pDevice" + i.toString()).value;
+            var pn = document.getElementById("pName" + i.toString()).value;
+            if(i == 0) {
+                url += '/pattern2/';
+                text += pp + "=" + pd + "," + pn;
+            }
+            else
+                text += '|' + pp + "=" + pd + "," + pn;
+        }
+        url += text;
+        patternText += "-->" + text;
+
+        console.log(url);
+
+        getJSON(url, function (err, data) {
+           if(err != null) {
+               alert("There is not the pattern " + patternText);
+           }
+           else {
+               if(data.success == true) {
+                   if(data.data[2] == null)
+                       alert("There is not the pattern " + patternText);
+                   else {
+                       var url2 = "patternPopup.html?data=" + JSON.stringify(data.data) + "&address=" + url;
+                       window.open(url2, "Found-Pattern", "width=400, height=300");
+                   }
+
+               }
+               if(data.success == false) {
+                    alert("There is not the pattern " + patternText);
+               }
+           }
+        });
+    }
+
+
+    function showEvent(appName, type, detail) {
+        appName = decodeURI(appName);
+        getJSON('http://' + ipAddress + port1 + '/flowsbyUser' + '/' + appName + '/' + sessionStorage.getItem('userId') + '/' + type, function(err, data) {
+            if(err != null) console.error(err);
+            else {
+                paging(1, data.data, detail);
+                showFlowData(1, data.data, detail);
+
+            }
+        });
+    }
+
+    function showEvent2(appName, type, methodName, detail) {
+        appName = decodeURI(appName);
+        var methodName_ori = methodName;
+        var methodName_sub;
+        if(type == "event") {
+            methodName_sub = methodName_ori.split('-')[0];
+            if(methodName_sub.includes("."))
+                methodName_sub = methodName_sub.split('.')[1];
+        }
+        if(type == "action") {
+            if(methodName_ori.includes("."))
+                methodName_sub = methodName_ori.split('.')[1];
+            else {
+                methodName_sub = methodName_ori;
+            }
+        }
+        getJSON('http://' + ipAddress + port1 + '/flowsbyUserEorAorM' + '/' + appName + '/' + sessionStorage.getItem('userId') + '/' + type + '/' + methodName_sub, function(err, data) {
+            if(err != null) console.error(err);
+            else {
+                paging(1, data.data, detail);
+                showFlowData(1, data.data, detail);
+            }
+        });
+    }
+
+    function showGraph(obj) {
+        var month = [];
+        var graphData = [];
+        getJSON('http://' + ipAddress + port1 + '/flowsbyUser/graph/' + obj + '/' + sessionStorage.getItem("userId"), function (err, data) {
+            if (err != null) console.error(err);
+            else {
+                var flowData = data.data;
+
+                for (var i = 0; i < flowData.length; i++) {
+                    month.push(flowData[i].date);
+                    graphData.push(flowData[i].countAll);
+                }
+
+                var ctx = document.getElementById('myChart');
+                myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+
+                        labels: month,
+                        datasets: [{
+                            label: 'smart App flows by month',
+
+                            data: graphData,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    function prove(obj) {
+        var objString = obj.toString();
+        var elements = objString.split("\n");
+        var appName = document.getElementById("trace").innerText;
+        appName = appName.substring(0, appName.length-11);
+        var url = "http://" + ipAddress + port1 + "/flowsbyUser/" + appName + "/" + sessionStorage.getItem("userId") + "/";
+        if(elements[0].includes("event")){
+            url += "whyEvent/";
+            if(elements[1] === "") {
+                url += elements[4].split(':')[1].substring(1) + "/";
+                url += elements[2].split(':')[1].substring(1) + "/";
+                url += elements[5].split(' ')[1] + ".000Z";
+            }
+            else {
+                var t;
+                if(elements[1].includes(":")) {
+                    url += elements[3].split(':')[1].substring(1) + "/";
+                    url += elements[1].split(':')[1].substring(1) + "/";
+                    t = elements[4].split(' ')[1] + ".000Z";
+                }
+                else {
+                    url += elements[4].split(':')[1].substring(1) + "/";
+                    url += elements[2].split(':')[1].substring(1) + "/";
+                    t = elements[5].split(' ')[1] + ".000Z";
+                }
+                //console.log(new Date(t).toISOString());
+                url += t;
+            }
+            console.log(url);
+            getJSON(url, function(err, data) {
+                if(err != null) console.error(err);
+                else {
+                    if(elements[1] === "")
+                        var text = "<h5>why was the " + elements[4].split(':')[1].substring(1) + " " + elements[2].split(':')[1].substring(1) + " at " + elements[5].split(' ')[1].substring(0,19) + "</h5>";
+                    else {
+                        if(elements[1].includes(":")) {
+                            var text = "<h5>why was the " + elements[3].split(':')[1].substring(1) + " " + elements[1].split(':')[1].substring(1) + " at " + elements[4].split(' ')[1].substring(0,19) + "</h5>";
+                        }
+                        else {
+                            var text = "<h5>why was the " + elements[4].split(':')[1].substring(1) + " " + elements[2].split(':')[1].substring(1) + " at " + elements[5].split(' ')[1].substring(0,19) + "</h5>";
+                        }
+                    }
+                    var proveInfo = data.data;
+
+                    for(var i = 0; i < proveInfo.length; i++) {
+                        var type = proveInfo[i].methodType;
+                        var name = proveInfo[i].methodName;
+                        var capability = proveInfo[i].capability;
+                        var deviceName = proveInfo[i].deviceName;
+                        if (deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length - 1);
+                        var datetime = proveInfo[i].createdAt.substring(0,19);
+
+                        if(type == "handlerMethod") {
+                            text += "<span class='elementSpan'><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[handler]</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+
+                        if(type == "methodCall") {
+                            /*text += "<span class='elementSpan'><ul>";
+                            text += "<li>[" + type + "]</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>";
+                            text += "<span class='arrowSpan'>-></span>";*/
+                        }
+                        if(type == "event") {
+                            var img_path;
+                            if(capability == "time")
+                                img_path = "\"image/" + capability + ".png\"";
+                            else
+                                img_path = "\"image/" + capability + "_" + name + ".png\"";
+
+                            text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                            if(parseInt(name)) {
+                                text += "<li style='color:lightcoral'>" + name + "</li>";
+                            }
+                            else
+                                text += "<li><img src=" + img_path + ">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></a></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+                        if(type == "action") {
+                            var img_path = "\"image/" + capability + "_" + name + ".png\"";
+                            text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                            text += "<li><img src=" + img_path + ">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></a></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+                    }
+                    document.getElementById("proveInfo").innerHTML = text;
+                    prove2(obj);
+                }
+            });
+        }
+        else if(elements[0].includes("action")) {
+            url += "whyAction/";
+            if(elements[1] === "") {
+                url += elements[4].split(':')[1].substring(1) + "/";
+                url += elements[2].split(':')[1].substring(1) + "/";
+                url += elements[5].split(' ')[1] + ".000Z";
+            }
+            else {
+                if(elements[1].includes(":")) {
+                    url += elements[3].split(':')[1].substring(1) + "/";
+                    url += elements[1].split(':')[1].substring(1) + "/";
+                    url += elements[4].split(' ')[1] + ".000Z";
+                }
+                else {
+                    url += elements[4].split(':')[1].substring(1) + "/";
+                    url += elements[2].split(':')[1].substring(1) + "/";
+                    url += elements[5].split(' ')[1] + ".000Z";
+                }
+            }
+            console.log(url);
+            getJSON(url, function(err, data) {
+                if(err != null) console.error(err);
+                else {
+                    if(elements[1] === "")
+                        var text = "<h5>why was the " + elements[4].split(':')[1].substring(1) + " " + elements[2].split(':')[1].substring(1) + " at " + elements[5].split(' ')[1].substring(0,19) + "</h5>";
+                    else {
+                        if(elements[1].includes(":"))
+                            var text = "<h5>why was the " + elements[3].split(':')[1].substring(1) + " " + elements[1].split(':')[1].substring(1) + " at " + elements[4].split(' ')[1].substring(0,19) + "</h5>";
+                        else
+                            var text = "<h5>why was the " + elements[4].split(':')[1].substring(1) + " " + elements[2].split(':')[1].substring(1) + " at " + elements[5].split(' ')[1].substring(0,19) + "</h5>";
+                    }
+                    var proveInfo = data.data;
+
+                    for(var i = 0; i < proveInfo.length; i++) {
+                        var type = proveInfo[i].methodType;
+                        var name = proveInfo[i].methodName;
+                        var capability = proveInfo[i].capability;
+                        var deviceName = proveInfo[i].deviceName;
+                        if (deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length - 1);
+                        var datetime = proveInfo[i].createdAt.substring(0,19);
+
+                        if(type == "handlerMethod") {
+                            text += "<span class='elementSpan'><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[handler]</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+
+                        if(type == "methodCall") {
+                            /*text += "<span class='elementSpan'><ul>";
+                            text += "<li>[" + type + "]</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>";
+                            text += "<span class='arrowSpan'>-></span>";*/
+                        }
+                        if(type == "event") {
+                            var img_path;
+                            if(capability == "time")
+                                img_path = "\"image/" + capability + ".png\"";
+                            else
+                                img_path = "\"image/" + capability + "_" + name + ".png\"";
+                            text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                            if(parseInt(name)) {
+                                text += "<li style='color:lightcoral'>" + name + "</li>";
+                            }
+                            else
+                                text += "<li><img src=" + img_path + ">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></a></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+                        if(type == "action") {
+                            var img_path = "\"image/" + capability + "_" + name + ".png\"";
+                            text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                            text += "<li><img src=" + img_path + ">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></a></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+                    }
+                    document.getElementById("proveInfo").innerHTML = text;
+                    prove2(obj);
+                }
+            });
+        }
+    }
+
+    function prove2(obj) {
+        var objString = obj.toString();
+        var elements = objString.split("\n");
+        var appName = document.getElementById("trace").innerText;
+        appName = appName.substring(0, appName.length-11);
+        var url = "http://" + ipAddress + port1 + "/flowsbyUser/" + appName + "/" + sessionStorage.getItem("userId") + "/";
+        if(elements[0].includes("event")){
+            url += "whatAction/";
+            if(elements[1] === "") {
+                url += elements[4].split(':')[1].substring(1) + "/";
+                url += elements[2].split(':')[1].substring(1) + "/";
+                url += elements[5].split(' ')[1] + ".000Z";
+            }
+            else {
+                if(elements[1].includes(":")) {
+                    url += elements[3].split(':')[1].substring(1) + "/";
+                    url += elements[1].split(':')[1].substring(1) + "/";
+                    url += elements[4].split(' ')[1] + ".000Z";
+                }
+                else {
+                    url += elements[4].split(':')[1].substring(1) + "/";
+                    url += elements[2].split(':')[1].substring(1) + "/";
+                    url += elements[5].split(' ')[1] + ".000Z";
+                }
+            }
+            console.log(url);
+            getJSON(url, function(err, data) {
+                if(err != null) console.error(err);
+                else {
+                    if(elements[1] === "")
+                        var text = "<h5>what actions are derived from the " + elements[4].split(':')[1].substring(1) + " " + elements[2].split(':')[1].substring(1) + " event at " + elements[5].split(' ')[1].substring(0,19) + "</h5>";
+                    else {
+                        if(elements[1].includes(":"))
+                            var text = "<h5>what actions are derived from the " + elements[3].split(':')[1].substring(1) + " " + elements[1].split(':')[1].substring(1) + " event at " + elements[4].split(' ')[1].substring(0,19) + "</h5>";
+                        else
+                            var text = "<h5>what actions are derived from the " + elements[4].split(':')[1].substring(1) + " " + elements[2].split(':')[1].substring(1) + " event at " + elements[5].split(' ')[1].substring(0,19) + "</h5>";
+                    }
+                    var proveInfo = data.data;
+
+                    for(var i = 0; i < proveInfo.length; i++) {
+                        var type = proveInfo[i].methodType;
+                        var name = proveInfo[i].methodName;
+                        var capability = proveInfo[i].capability;
+                        var deviceName = proveInfo[i].deviceName;
+                        if (deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length - 1);
+                        var datetime = proveInfo[i].createdAt.substring(0,19);
+
+                        if(type == "handlerMethod") {
+                            text += "<span class='elementSpan'><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[handler]</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+
+                        if(type == "methodCall") {
+                            /*text += "<span class='elementSpan'><ul>";
+                            text += "<li>[" + type + "]</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>";
+                            text += "<span class='arrowSpan'>-></span>";*/
+                        }
+                        if(type == "event") {
+                            var img_path;
+                            if(capability == "time")
+                                img_path = "\"image/" + capability + ".png\"";
+                            else
+                                img_path = "\"image/" + capability + "_" + name + ".png\"";
+                            text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                            if(parseInt(name)) {
+                                text += "<li style='color:lightcoral'>" + name + "</li>";
+                            }
+                            else
+                                text += "<li><img src=" + img_path + ">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></a></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+                        if(type == "action") {
+                            var img_path = "\"image/" + capability + "_" + name + ".png\"";
+                            text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                            text += "<li><img src=" + img_path + ">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></a></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+                    }
+                    document.getElementById("proveInfo").innerHTML += text;
+                }
+            });
+        }
+        else if(elements[0].includes("action")) {
+            url += "whatEvent/";
+            if(elements[1] === "") {
+                url += elements[4].split(':')[1].substring(1) + "/";
+                url += elements[2].split(':')[1].substring(1) + "/";
+                url += elements[5].split(' ')[1] + ".000Z";
+            }
+            else {
+                if(elements[1].includes(":")) {
+                    url += elements[3].split(':')[1].substring(1) + "/";
+                    url += elements[1].split(':')[1].substring(1) + "/";
+                    url += elements[4].split(' ')[1] + ".000Z";
+                }
+                else {
+                    url += elements[4].split(':')[1].substring(1) + "/";
+                    url += elements[2].split(':')[1].substring(1) + "/";
+                    url += elements[5].split(' ')[1] + ".000Z";
+                }
+            }
+            console.log(url);
+            getJSON(url, function(err, data) {
+                if(err != null) console.error(err);
+                else {
+                    if(elements[1] === "")
+                        var text = "<h5>what events are caused by the " + elements[4].split(':')[1].substring(1) + " " + elements[2].split(':')[1].substring(1) + " action at " + elements[5].split(' ')[1].substring(0,19) + "</h5>";
+                    else {
+                        if(elements[1].includes(":"))
+                            var text = "<h5>what events are caused by the " + elements[3].split(':')[1].substring(1) + " " + elements[1].split(':')[1].substring(1) + " action at " + elements[4].split(' ')[1].substring(0,19) + "</h5>";
+                        else
+                            var text = "<h5>what events are caused by the " + elements[4].split(':')[1].substring(1) + " " + elements[2].split(':')[1].substring(1) + " action at " + elements[5].split(' ')[1].substring(0,19) + "</h5>";
+                    }
+                    var proveInfo = data.data;
+
+                    for(var i = 0; i < proveInfo.length; i++) {
+                        var type = proveInfo[i].methodType;
+                        var name = proveInfo[i].methodName;
+                        var capability = proveInfo[i].capability;
+                        var deviceName = proveInfo[i].deviceName;
+                        if (deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length - 1);
+                        var datetime = proveInfo[i].createdAt.substring(0,19);
+
+                        if(type == "handlerMethod") {
+                            text += "<span class='elementSpan'><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+
+                        if(type == "methodCall") {
+
+                        }
+                        if(type == "event") {
+                            var img_path;
+                            if(capability == "time")
+                                img_path = "\"image/" + capability + ".png\"";
+                            else
+                                img_path = "\"image/" + capability + "_" + name + ".png\"";
+
+                            text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                            if(parseInt(name)) {
+                                text += "<li style='color:lightcoral'>" + name + "</li>";
+                            }
+                            else
+                                text += "<li><img src=" + img_path + ">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></a></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+                        if(type == "action") {
+                            var img_path = "\"image/" + capability + "_" + name + ".png\"";
+
+                            text += "<span class='elementSpan'><a href=\"javascript:void(0);\" onclick=\"prove(this.innerText);\"><ul>";
+                            text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                            text += "<li><img src=" + img_path + ">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></a></span>";
+                            text += "<span class='arrowSpan'>-></span>";
+                        }
+                    }
+                    document.getElementById("proveInfo").innerHTML += text;
+                }
+            });
+        }
+    }
+
+</script>
+</body>
+</html>

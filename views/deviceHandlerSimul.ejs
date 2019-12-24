@@ -1,0 +1,176 @@
+<!DOCTYPE HTML>
+<!--
+	TXT by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+
+<html>
+<head>
+    <title>Device Handler Tile Simulation</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/jquery.dropotron.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/jquery.scrolly.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/browser.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/breakpoints.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/util.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/main.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/jquery-linedtextarea.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<script src="//code.jquery/com/jquery-1.11.0.min.js"></script>
+	<link href="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/css/jquery-linedtextarea.css" type="text/css" rel="stylesheet" />
+	<link rel="stylesheet" href="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/css/main.css" />
+	<style>
+		.wrapper {
+			display: grid;
+			grid-gap: 2px;
+			grid-template-columns: 50px 50px 50px 50px 50px 50px;
+			background-color: #fff;
+			color: #444;
+			width: 300px;
+			grid-auto-rows: 50px;
+			padding-left: 30px;
+		}
+
+		.mbox {
+			background-color: #ffffff;
+			color: #444444;
+			border-radius: 5px;
+			/*padding: 20px;*/
+			font-size: 10pt;
+			border: 1px solid black;
+			word-break:break-all;
+			text-overflow:ellipsis;
+
+		}
+	</style>
+</head>
+<body class="is-preload">
+	<div id="page-wrapper">
+	<div class="row"> 
+    <div class="col-12">
+    <div class="content">
+
+    <!-- Content -->
+
+    <article class="box page-content">
+		<!-- Header -->
+		<header id="header">
+			<div class="logo container">
+				<div>
+					<h1><a href="http://203.252.195.182:3030/simul" id="logo">Device Handler</a></h1>
+					<p>Tile Simulation</p>
+				</div>
+			</div>
+		</header>
+		<section id="main">
+			<div class="container" style="width: 98%">
+				<section style="width: 100%;position:relative">
+					<form action="http://203.252.195.182:3030/simul" method="POST">
+						<div style="width:100%;max-height:200px;">
+							<div style="display:inline-block;width:47%;text-align:center;">
+								<header>
+									<h2>Enter Device Handler Code</h2>
+								</header>
+							</div>
+							<div style="display:inline-block;width:47%;text-align:center;">
+								<header>
+									<h2>Result</h2>
+								</header>
+							</div>
+						</div>
+
+						<div style="display:inline-block;width:47%">
+						<% if (content) { %>
+						<textarea class="lined" rows="40" cols="100" style="resize:none;display:inline;margin:0;padding:5px;font-size:12pt;" name="content" id="content"><%=content%></textarea>
+						<% } else { %>
+						<textarea class="lined" rows="40" cols="100" style="resize:none;display:inline;margin:0;padding:5px;font-size:12pt;" name="content" id="content"></textarea>
+						<% } %>
+							<input type="submit" value="Simulation" style="margin:5px">
+						</div>
+						<div style="display:inline-block;width:47%;position:absolute;top:120px;">
+							<div class="wrapper">
+						<%
+						var jo;
+						var str = "";
+						var startRow = 1;
+						var startCol = 1;
+						var endRow = 0;
+						var endCol = 0;
+						if (result) {
+							jo = JSON.parse(result);
+							for(var i = 0; i < jo.length; i++) {
+								if(jo[i].scale == 2) {
+									endRow = startRow + parseInt(jo[i].height);
+									endCol = startCol + parseInt(jo[i].width);
+								}
+								else if(jo[i].scale == 1) {
+									if(jo[i].width == 6 && jo[i].height == 4) {
+										endRow = startRow + parseInt(jo[i].height);
+										endCol = startCol + parseInt(jo[i].width);
+									}
+									else {
+										endRow = startRow + (parseInt(jo[i].height)*2);
+										endCol = startCol + (parseInt(jo[i].width)*2);
+									}
+								
+								}
+
+							
+								str += "<div class=\"mbox\"";
+								str += "style=\"grid-column-start:" + startCol + "; grid-column-end:" + endCol + "; "
+								str += "grid-row-start:" + startRow + "; grid-row-end:" + endRow + ";\"" + ">" + jo[i].name + "</div>";
+								//startCol += parseInt(jo[i].width);
+								startCol = endCol;
+								if(startCol-1 == 6) {
+									startRow = endRow;
+									startCol = 1;
+								}
+							
+							}
+						%>
+							<%-str%></div>
+
+						<% } else { %>
+
+						<% } %>
+						</div>
+					</form>
+					<input type="button" value="Main Page" style="float:right;margin:5px;" onclick="location.href='http://cs.sookmyung.ac.kr/~uslab/gy/smartAppMonitor/'">
+                    <input type="button" value="SmartThings IDE" style="float:right;margin:5px" onclick="location.href='https://graph.api.smartthings.com/'">
+				</section>
+				<script>
+					$(function() {
+						$(".lined").linedtextarea(
+							{selectedLine: 1}
+						);
+					});
+				</script>
+			</div>
+		</section>
+	</article>
+	</div>
+	</div>
+	</div>
+    <!-- Footer -->
+    <footer id="footer">
+        <div class="container">
+            <div class="row gtr-200">
+                <div class="col-12">
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div id="copyright">
+                <ul class="menu">
+                    <li>&copy; Untitled. All rights reserved</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </footer>
+	</div>
+</body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SmartApp-Monitor</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.11.4/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="css/mainpagestyle.css">
+    <script src="//code.jquery.com/jquery.min.js"></script>
+    <script src="//code.jquery.com/ui/1.11.4/jquery-ui.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+<header id="pageHeader"><i class="fa fa-desktop fa-2x" style="margin-right:10px;display:inline-block"></i><h2 style="display:inline-block">SmartApp Monitor</h2></header>
+<nav id="mainNav" class="menu">
+    <h4>Menu</h4>
+    <div class="menu">
+        <a href="http://203.252.195.182:3030/code">Code Instrument</a>
+        <a href="https://graph.api.smartthings.com">SmartThings IDE</a>
+    </div>
+</nav>
+<div id="siteAds" class="userInfo">
+    <h4>User Information</h4>
+    <div class="userInfo">
+        <div class="userInfo" style="margin:0; text-align: center">
+        <i class="fa fa-user-circle fa-5x"></i>
+        </div>
+        <p id="userId">ID:</p>
+        <button style="float:right" onclick=logout();>logout</button>
+    </div>
+</div>
+<article id="mainArticle">
+    <div id="mainContents">
+        <div id="applist">
+            <p>appList</p>
+        </div>
+        <div id="appinfo">
+            <p id="trace">app trace data</p>
+            <div id="flowinfo" style="padding:0"></div>
+            <div id="paging"></div>
+        </div>
+        <div id="eventactiongraph">
+            <p>graph</p>
+            <canvas id="myChart"></canvas>
+        </div>
+        <div id="provenance">
+            <p>provenance</p>
+            <div id="proveInfo"></div>
+        </div>
+    </div>
+    <div id="realtime" style="border: solid 1px #F7F7F7;">
+        <p>realtime</p>
+    </div>
+</article>
+<footer id="pageFooter">Footer</footer>
+<script src="js/getJsonData.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.js"></script>
+<script>
+    var smartAppInfo;
+    var myChart;
+    document.getElementById("userId").innerHTML += " " + sessionStorage.getItem("userId");
+    getJSON('http://203.252.195.182:8080/smartapps' + '/' + sessionStorage.getItem("userId"),  function(err, data) {
+       if(err != null) console.error(err);
+       else {
+           smartAppInfo = data;
+           var text = "<ul>";
+           for(var i = 0; i < data.data.length; i++){
+               var app = data.data[i].appName;
+               text += "<li><h4 onclick=showInfo(this.innerHTML);>" + app + "</h4></li>";
+           }
+           text += "</ul>";
+           document.getElementById("applist").innerHTML += text;
+       }
+    });
+
+	var socket = io();
+	
+	var appName = "";
+
+	var brNum = 0;
+	socket.on('send data event', function(call) {
+		document.getElementById('realtime').innerHTML += call;
+	});
+
+
+    function logout() {
+        sessionStorage.removeItem("userId");
+        window.location.href = "index.html";
+    }
+
+    function showInfo(obj) {
+        console.log(obj);
+        /*for(var i = 0; i < smartAppInfo.length; i++) {
+                if(smartAppInfo[i].appName == )
+        }*/
+        showFlow(obj);
+        showGraph(obj);
+    }
+
+    function showFlow(obj) {
+        var flowInfo;
+        document.getElementById("trace").innerHTML = obj + " trace data"
+        getJSON('http://203.252.195.182:8080/flowsbyUser' + '/' + obj + '/' + sessionStorage.getItem('userId'), function(err, data) {
+            if(err != null) console.error(err);
+            else {
+                flowInfo = data.data;
+                paging(1, flowInfo);
+                showFlowData(1, flowInfo);
+            }
+        });
+    }
+    function paging(currentPage, data) {
+        var dataLength = data.length;
+        var perPage = 15;
+        var totalPage = Math.ceil(dataLength/perPage);
+        var pageGroup = Math.ceil(currentPage/perPage);
+
+        var last = pageGroup * perPage;
+        if(last > totalPage) last = totalPage;
+        var first = last - (perPage-1);
+        if(first < 1) first = 1;
+        var next = last+1;
+        var prev = first-1;
+
+        var html = "";
+        html +=  "<a href=# id='first'>first</a> ";
+        if(prev > 0)
+            html += "<a href=# id='prev'><</a> ";
+        for(var i=first; i <= last; i++){
+            html += "<a href='#' id=" + i + ">" + i + "</a> ";
+        }
+        if(last < totalPage)
+            html += "<a href=# id='next'>></a> ";
+        html +=  "<a href=# id='last'>last</a>";
+
+        $("#paging").html(html);
+        $("#paging a").css("color", "black");
+        $("#paging a#" + currentPage).css({"text-decoration":"none", "color":"red", "front-weight":"bold"});
+
+        $("#paging a").click(function(){
+            var $item = $(this);
+            var $id = $item.attr("id");
+            var selectedPage = $item.text();
+
+            if($id == "next")    selectedPage = next;
+            if($id == "prev")    selectedPage = prev;
+            if($id == "first") selectedPage = "1";
+            if($id == "last") selectedPage = totalPage;
+            paging(selectedPage, data);
+            showFlowData(selectedPage, data);
+        });
+
+    }
+
+    function showFlowData(currentPage, data) {
+        var perPage = 15;
+        var dataLength = data.length;
+        var startItem = (currentPage-1) * perPage;
+        var lastItem = (currentPage) * perPage;
+        if(lastItem > dataLength) lastItem = dataLength;
+
+        var text = "";
+        for(var i = startItem; i < lastItem; i++) {
+            var type = data[i].methodType;
+            var name = data[i].methodName;
+            var capability = data[i].capability;
+            var deviceName = data[i].deviceName;
+            if(deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length-1);
+            var datetime = data[i].createdAt;
+            //text += "<span style='display:inline-block;width:30%'><ul style='list-style: none'>" + "<li>[" + type + "]</li><li><img src=\"image/play.png\" style=\"width:20px; height:20px;\">" + "</li><li>name: " + name + "</li><li>device: " + deviceName + "</li><li>occur: " + datetime + "</li></ul></span>"
+            if(type == "handlerMethod") {
+                text += "<span style='display:inline-block;width:30%'><ul style='list-style:none'>";
+                text += "<li>[" + type + "]</li>";
+                text += "<li>name: " + name + "</li>";
+                text += "<li>occur: " + datetime + "</li>";
+                text += "</ul></span>"
+                text += "<span style='display:inline-block;width:3%;'>-></span>";
+            }
+
+            if(type == "methodCall") {
+
+            }
+            if(type == "event") {
+                var img_path;
+                if(capability == "time")
+                    img_path = "\"image/" + capability + ".png\"";
+                else
+                    img_path = "\"image/" + capability + "_" + name + ".png\"";
+                text += "<span style='display:inline-block;width:30%' onclick='prove(this.innerText);'><ul style='list-style:none'>";
+                text += "<li>[" + type + "]</li>";
+                text += "<li><img src=" + img_path +  " style=\"width:30px;height:30px;\">" + "</li>";
+                text += "<li>name: " + name + "</li>";
+                text += "<li>cap: " + capability + "</li>";
+                text += "<li>device: " + deviceName + "</li>";
+                text += "<li>occur: " + datetime + "</li>";
+                text += "</ul></span>"
+                text += "<span style='display:inline-block;width:3%;'>-></span>";
+            }
+            if(type == "action") {
+                var img_path = "\"image/" + capability + "_" + name + ".png\"";
+                text += "<span style='display:inline-block;width:30%' onclick='prove(this.innerText);'><ul style='list-style:none'>";
+                text += "<li>[" + type + "]</li>";
+                text += "<li><img src=" + img_path +  " style=\"width:30px;height:30px;\">" + "</li>";
+                text += "<li>name: " + name + "</li>";
+                text += "<li>cap: " + capability + "</li>";
+                text += "<li>device: " + deviceName + "</li>";
+                text += "<li>occur: " + datetime + "</li>";
+                text += "</ul></span>"
+                text += "<span style='display:inline-block;width:3%;'>-></span>";
+            }
+        }
+        document.getElementById("flowinfo").innerHTML = text;
+    }
+
+    function showGraph(obj) {
+        var month = [];
+        var graphData = [];
+        getJSON('http://203.252.195.182:8080/flowsbyUser/graph/' + obj + '/' + sessionStorage.getItem("userId"), function (err, data) {
+            if (err != null) console.error(err);
+            else {
+                var flowData = data.data;
+
+                for (var i = 0; i < flowData.length; i++) {
+                    month.push(flowData[i].date);
+                    graphData.push(flowData[i].countAll);
+                }
+                console.log(month);
+                console.log(graphData);
+                var ctx = document.getElementById('myChart');
+                myChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        //labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
+                        labels: month,
+                        datasets: [{
+                            label: 'smart App flows by month',
+                            //data: [12, 19, 3, 5, 2, 3],
+                            data: graphData,
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            yAxes: [{
+                                ticks: {
+                                    beginAtZero: true
+                                }
+                            }]
+                        }
+                    }
+                });
+            }
+        });
+    }
+
+    function prove(obj) {
+        var objString = obj.toString();
+        var elements = objString.split("\n");
+        var appName = document.getElementById("trace").innerText;
+        appName = appName.substring(0, appName.length-11);
+        var url = "http://203.252.195.182:8080/flowsbyUser/" + appName + "/" + sessionStorage.getItem("userId") + "/";
+        if(elements[0].includes("event")){
+            url += "whyEvent/";
+            url += elements[3].split(':')[1].substring(1) + "/";
+            url += elements[1].split(':')[1].substring(1) + "/";
+            url += elements[4].split(' ')[1];
+            getJSON(url, function(err, data) {
+                if(err != null) console.error(err);
+                else {
+                    var text = "";
+                    var proveInfo = data.data;
+                    console.log(proveInfo.length);
+                    for(var i = 0; i < proveInfo.length; i++) {
+                        var type = proveInfo[i].methodType;
+                        var name = proveInfo[i].methodName;
+                        var capability = proveInfo[i].capability;
+                        var deviceName = proveInfo[i].deviceName;
+                        if (deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length - 1);
+                        var datetime = proveInfo[i].createdAt;
+
+                        if(type == "handlerMethod") {
+                            text += "<span style='display:inline-block;width:30%'><ul style='list-style:none'>";
+                            text += "<li>[" + type + "]</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>"
+                            text += "<span style='display:inline-block;width:3%;'>-></span>";
+                        }
+
+                        if(type == "methodCall") {
+
+                        }
+                        if(type == "event") {
+                            var img_path;
+                            if(capability == "time")
+                                img_path = "\"image/" + capability + ".png\"";
+                            else
+                                img_path = "\"image/" + capability + "_" + name + ".png\"";
+                            text += "<span style='display:inline-block;width:30%' onclick='prove(this.innerText);'><ul style='list-style:none'>";
+                            text += "<li>[" + type + "]</li>";
+                            text += "<li><img src=" + img_path +  " style=\"width:30px;height:30px;\">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>"
+                            text += "<span style='display:inline-block;width:3%;'>-></span>";
+                        }
+                        if(type == "action") {
+                            var img_path = "\"image/" + capability + "_" + name + ".png\"";
+                            text += "<span style='display:inline-block;width:30%' onclick='prove(this.innerText);'><ul style='list-style:none'>";
+                            text += "<li>[" + type + "]</li>";
+                            text += "<li><img src=" + img_path +  " style=\"width:30px;height:30px;\">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>"
+                            text += "<span style='display:inline-block;width:3%;'>-></span>";
+                        }
+                    }
+                    document.getElementById("proveInfo").innerHTML = text;
+                }
+            });
+        }
+        else if(elements[0].includes("action")) {
+            url += "whyAction/";
+            url += elements[3].split(':')[1].substring(1) + "/";
+            url += elements[1].split(':')[1].substring(1) + "/";
+            url += elements[4].split(' ')[1];
+            getJSON(url, function(err, data) {
+                if(err != null) console.error(err);
+                else {
+                    var text = "";
+                    var proveInfo = data.data;
+                    console.log(proveInfo.length);
+                    for(var i = 0; i < proveInfo.length; i++) {
+                        var type = proveInfo[i].methodType;
+                        var name = proveInfo[i].methodName;
+                        var capability = proveInfo[i].capability;
+                        var deviceName = proveInfo[i].deviceName;
+                        if (deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length - 1);
+                        var datetime = proveInfo[i].createdAt;
+
+                        if(type == "handlerMethod") {
+                            text += "<span style='display:inline-block;width:30%'><ul style='list-style:none'>";
+                            text += "<li>[" + type + "]</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>"
+                            text += "<span style='display:inline-block;width:3%;'>-></span>";
+                        }
+
+                        if(type == "methodCall") {
+
+                        }
+                        if(type == "event") {
+                            var img_path;
+                            if(capability == "time")
+                                img_path = "\"image/" + capability + ".png\"";
+                            else
+                                img_path = "\"image/" + capability + "_" + name + ".png\"";
+                            text += "<span style='display:inline-block;width:30%' onclick='prove(this.innerText);'><ul style='list-style:none'>";
+                            text += "<li>[" + type + "]</li>";
+                            text += "<li><img src=" + img_path +  " style=\"width:30px;height:30px;\">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>"
+                            text += "<span style='display:inline-block;width:3%;'>-></span>";
+                        }
+                        if(type == "action") {
+                            var img_path = "\"image/" + capability + "_" + name + ".png\"";
+                            text += "<span style='display:inline-block;width:30%' onclick='prove(this.innerText);'><ul style='list-style:none'>";
+                            text += "<li>[" + type + "]</li>";
+                            text += "<li><img src=" + img_path +  " style=\"width:30px;height:30px;\">" + "</li>";
+                            text += "<li>name: " + name + "</li>";
+                            text += "<li>cap: " + capability + "</li>";
+                            text += "<li>device: " + deviceName + "</li>";
+                            text += "<li>occur: " + datetime + "</li>";
+                            text += "</ul></span>"
+                            text += "<span style='display:inline-block;width:3%;'>-></span>";
+                        }
+                    }
+                    document.getElementById("proveInfo").innerHTML = text;
+                }
+            });
+        }
+    }
+
+</script>
+</body>
+</html>

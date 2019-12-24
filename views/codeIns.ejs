@@ -1,0 +1,74 @@
+<html>
+<head>
+	<title>CodeInstrument Tool</title>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/jquery-linedtextarea.js"></script>
+	<link href="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/css/jquery-linedtextarea.css" type="text/css" rel="stylesheet" />
+	<script>
+		$(function() {
+			$(".lined").linedtextarea(
+					{selectedLine: 1}
+			);
+		});
+	</script>
+	<style>
+		.areaDiv {
+			display: inline-block;
+		}
+		body {
+			display: grid;
+			grid-template-areas:
+					"header header header"
+					"article article article"
+					"footer footer footer";
+			grid-template-rows: 60px 1fr 60px;
+			grid-template-columns: 15% 1fr 15%;
+			grid-gap: 10px;
+			height: 100vh;
+			margin: 0;
+		}
+		#pageHeader {
+			grid-area: header;
+			text-align: center;
+			background-color: gold;
+		}
+		#pageFooter {
+			grid-area: footer;
+		}
+		#mainArticle {
+			grid-area: article;
+			display:grid;
+			grid-template-areas: "codeForm";
+			grid-template-columns: 100%;
+			grid-gap: 10px;
+			height: 100vh;
+		}
+	</style>
+</head>
+<body>
+<header id="pageHeader"><h2>Code Instrumentation</h2></header>
+<article id="mainArticle">
+	<form action="http://203.252.195.182:3030/code" method="POST"  id="codeForm">
+		<div class="areaDiv" id="oricodeDiv">
+			<h3>Enter Code</h3>
+			<% if (oricode) { %>
+			<textarea class="lined" rows="50" cols="100" name="content"><%=oricode%></textarea>
+			<% } else { %>
+			<textarea class="lined" rows="50" cols="100" name="content"></textarea>
+			<% } %>
+		</div>
+		<div class="areaDiv" id="concodeDiv">
+			<h3>Instrumented Code</h3>
+			<% if (concode) { %>
+			<textarea class="lined" rows="50" cols="100" name="content2"><%=concode%></textarea>
+			<% } else { %>
+			<textarea class="lined" rows="50" cols="100" name="content2"></textarea>
+			<% } %>
+		</div>
+		<div id="submitbuttonDiv" style="margin:0;padding:0;padding-left:10px;"><input type="submit" value="instrumentation"></div>
+	</form>
+</article>
+<footer id="pageFooter"></footer>
+
+</body>
+</html>

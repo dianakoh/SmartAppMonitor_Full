@@ -1,0 +1,123 @@
+<!DOCTYPE HTML>
+<!--
+	TXT by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+
+<html>
+<head>
+    <title>Code Instrument</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/jquery.dropotron.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/jquery.scrolly.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/browser.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/breakpoints.min.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/util.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/main.js"></script>
+	<script src="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/js/jquery-linedtextarea.js"></script>
+	<script src="https://code.jquery.com/jquery-migrate-1.4.1.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+	<link href="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/css/jquery-linedtextarea.css" type="text/css" rel="stylesheet" />
+	<link rel="stylesheet" href="http://cs.sookmyung.ac.kr/~uslab/gy/data/assets/css/main.css" />
+	<style>
+        	input[type=checkbox]
+        	{
+            		-webkit-appearance:checkbox;
+        	}
+        	input[type=radio]
+        	{
+            		-webkit-appearance:radio;
+        	}
+
+	</style>
+</head>
+<body class="is-preload">
+	<div id="page-wrapper">
+	<div class="row"> 
+    <div class="col-12">
+    <div class="content">
+
+    <!-- Content -->
+
+    <article class="box page-content">
+		<!-- Header -->
+		<header id="header">
+			<div class="logo container">
+				<div>
+					<h1><a href="http://203.252.195.182:3030/code" id="logo">Code</a></h1>
+					<p>Instrument</p>
+				</div>
+			</div>
+		</header>
+		<section id="main">
+			<div class="container" style="width: 98%">
+				<section style="width: 100%">
+					<form action="http://203.252.195.182:3030/code" method="POST">
+						<div>
+						<h4> code Instrument option </h4>
+						<input class="form-check-input" type="radio" name="eventOrHandlerOrActionOrAll" value="onlyEvent" id="onlyEvent"><label class="form-check-label" for="onlyEvent" style="display: inline-block;">Event</label>
+						<input class="form-check-input" type="radio" name="eventOrHandlerOrActionOrAll" value="onlyHandler" id="onlyHandler"><label class="form-check-label" for="onlyHandler" style="display: inline-block;">Handler</label>
+						<input class="form-check-input" type="radio" name="eventOrHandlerOrActionOrAll" value="onlyAction" id="onlyAction"><label class="form-check-label" for="onlyAction" style="display: inline-block;">Action</label>
+						<input class="form-check-input" type="radio" name="eventOrHandlerOrActionOrAll" value="all" id="all"><label class="form-check-label" for="all" style="display: inline-block;">All</label>
+						</div>
+						<div style="display:inline-block;width:47%">
+						<header>
+							<h2>Enter Code</h2>
+						</header>
+						<% if (oricode) { %>
+						<textarea class="lined" rows="40" cols="100" style="resize:none;display:inline;margin:0;padding:5px;font-size:12pt;" name="content" id="content"><%=oricode%></textarea>
+						<% } else { %>
+						<textarea class="lined" rows="40" cols="100" style="resize:none;display:inline;margin:0;padding:5px;font-size:12pt;" name="content" id="content"></textarea>
+						<% } %>
+						</div>
+						<div style="display:inline-block;width:47%">
+						<header>
+							<h2>Converted Code</h2>
+						</header>
+						<% if (concode) { %>
+						<textarea class="lined" rows="40" cols="100" style="resize:none;display:inline;margin:0;padding:5px;font-size:12pt;" name="content2" id="content2"><%=concode%></textarea>
+						<% } else { %>
+						<textarea class="lined" rows="40" cols="100" style="resize:none;display:inline;margin:0;padding:5px;font-size:12pt;" name="content2" id="content2"></textarea>
+						<% } %>
+						</div>
+						<input type="submit" value="convert" style="margin:5px">
+					</form>
+					<input type="button" value="Main Page" style="float:right;margin:5px;" onclick="location.href='http://cs.sookmyung.ac.kr/~uslab/gy/smartAppMonitor/main.html'">
+                    <input type="button" value="SmartThings IDE" style="float:right;margin:5px" onclick="location.href='https://graph.api.smartthings.com/'">
+				</section>
+				<script>
+					$(function() {
+						$(".lined").linedtextarea(
+							{selectedLine: 1}
+						);
+					});
+				</script>
+			</div>
+		</section>
+	</article>
+	</div>
+	</div>
+	</div>
+    <!-- Footer -->
+    <footer id="footer">
+        <div class="container">
+            <div class="row gtr-200">
+                <div class="col-12">
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div id="copyright">
+                <ul class="menu">
+                    <li>&copy; Untitled. All rights reserved</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </footer>
+	</div>
+</body>
+</html>

@@ -1,0 +1,479 @@
+<!DOCTYPE HTML>
+<!--
+	TXT by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+<head>
+    <title>Smart App Flow</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+	<style>
+		@font-face {
+			font-family: 'digital-7';
+			src:url('fonts/digital-7.ttf');
+		}
+
+		.numberEvent{position: absolute; left: 50%; transform: translateX(-50%); display: block; color: #b1ddab; font-size: 60px; font-family: "digital-7"; }
+        input[type=checkbox]
+        {
+            -webkit-appearance:checkbox;
+        }
+        input[type=radio]
+        {
+            -webkit-appearance:radio;
+        }
+	</style>
+</head>
+<body class="is-preload">
+<div id="page-wrapper">
+
+    <!-- Header -->
+    <header id="header">
+        <div class="logo container">
+            <div>
+                <h1><a href="index.html" id="logo">Flow of</a></h1>
+                <p id="mytitle"></p>
+            </div>
+        </div>
+    </header>
+    <!-- Nav
+    <nav id="nav">
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li>
+                <a href="#">Dropdown</a>
+                <ul>
+                    <li><a href="#">Lorem ipsum dolor</a></li>
+                    <li><a href="#">Magna phasellus</a></li>
+                    <li>
+                        <a href="#">Phasellus consequat</a>
+                        <ul>
+                            <li><a href="#">Lorem ipsum dolor</a></li>
+                            <li><a href="#">Phasellus consequat</a></li>
+                            <li><a href="#">Magna phasellus</a></li>
+                            <li><a href="#">Etiam dolore nisl</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#">Veroeros feugiat</a></li>
+                </ul>
+            </li>
+            <li><a href="left-sidebar.html">Left Sidebar</a></li>
+            <li><a href="right-sidebar.html">Right Sidebar</a></li>
+            <li class="current"><a href="no-sidebar.html">No Sidebar</a></li>
+        </ul>
+    </nav>-->
+
+    <!-- Main -->
+    <section id="main">
+        <div class="container" style="width: 98%">
+            <div class="row">
+                <div class="col-12">
+                    <div class="content">
+
+                        <!-- Content -->
+
+                        <article class="box page-content">
+                            <header>
+                                <h2 id="mytitle2"></h2>
+                                <!--<p>Semper amet scelerisque metus faucibus morbi congue mattis</p>-->
+                                <ul class="meta">
+                                    <li class="icon fa-clock-o" id="lastevent" ></li>
+                                    <li class="icon fa-comments" id="occurnum"><a href="#"></a></li>
+                                    <li class="icon fa-adjust" id="rank"></li>
+                                    <form>
+                                        <li class="icon fa-search">Select Search Options</li>
+                                    <li>start: <input type="date" name="startDate"> ~ end: <input type="date" name="endDate">
+                                    <input type="text" name="appName" id="appName" style="display:none">
+                                        <div>
+                                        <select name="searchType" style="width:10%;display:inline-block;">
+                                            <option value="event">Event</option>
+                                            <option value="action">Action</option>
+                                        </select>
+                                        <input type="text" name="eventOrActionName" id="eventOrActionName" style="width:30%;display:inline-block;">
+                                        </div>
+                                        <div>
+                                            <input class="form-check-input" type="radio" name="eventOrAction" value="event" id="events"><label class="form-check-label" for="events" style="display: inline-block;">Only Events</label>
+                                            <input class="form-check-input" type="radio" name="eventOrAction" value="action" id="actions"><label class="form-check-label" for="actions" style="display: inline-block;">Only Actions</label>
+                                        </div>
+                                        <input type="submit" value="search">
+                                    </li>
+                                        <!--<li>Choose what you want to search<br/>
+                                            <input type="checkbox" name="events" value="true" id="events"><label for="events" style="display: inline-block;"> Events</label>
+                                            <input type="checkbox" name="actions" value="true" id="actions"><label for="actions" style="display: inline-block;"> Actions</label>
+                                        </li>-->
+                                    </form>
+                                    <li class="icon"><input type="button" id="detailButton" value="show the app flow details/simples(e-h-a)" onclick="detailButton_click();" style="position: absolute; right: 10%;"/></li>
+                                </ul>
+
+                            </header>
+							
+                            <section>
+                                <!--<ul id = "mylist" style="list-style:none">
+
+                                </ul>-->
+                                <div style="margin-bottom:10px; padding-bottom:30px;"></div>
+								<div id="mylist" style="width: 100%"></div>
+                                <!--<span class="image featured"><img src="images/pic05.jpg" alt="" /></span>
+                                <p>
+                                    Phasellus quam turpis, feugiat sit amet ornare in, hendrerit in lectus.
+                                    Praesent semper mod quis eget mi. Etiam eu ante risus. Aliquam erat volutpat.
+                                    Aliquam luctus et mattis lectus sit amet pulvinar. Nam turpis nisi
+                                    consequat etiam lorem ipsum dolor sit amet nullam.
+                                </p>-->
+                            </section>
+                            <a href="main" class="button alt" style="position: absolute; right: 10%;">Main Page</a>
+                            <!--<input type="button" value="Main Page" onclick="location.href='http://cs.sookmyung.ac.kr/~uslab/gy/smartAppMonitor/index.html'">-->
+                        </article>
+
+                    </div>
+                </div>
+                <div class="col-12">
+
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="footer">
+        <div class="container">
+            <div class="row gtr-200">
+                <div class="col-12">
+                </div>
+            </div>
+
+            <!-- Copyright -->
+            <div id="copyright">
+                <ul class="menu">
+                    <li>&copy; Untitled. All rights reserved</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </footer>
+
+</div>
+
+<!-- Scripts -->
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.dropotron.min.js"></script>
+<script src="assets/js/jquery.scrolly.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+
+<script>
+    var vars = {};
+    var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+        vars[key] = value;
+    });
+    //return vars;
+    var text;
+    text = vars.appName.toString().replace(/\+/gi, "%20");
+    text = decodeURI(text);
+    document.getElementById("mytitle").innerHTML = text;
+    document.getElementById("mytitle2").innerHTML = text;
+    document.getElementById("appName").value = text;
+
+
+    var getJSON = function(url, callback) {
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'json';
+
+        xhr.onload = function() {
+
+            var status = xhr.status;
+
+            if (status == 200) {
+                callback(null, xhr.response);
+            } else {
+                callback(status);
+            }
+        };
+
+        xhr.send();
+    };
+
+    //getJSON('http://time.jsontest.com',  function(err, data) {
+    var url = 'http://203.252.195.182:8080/flows/' + vars.appName.toString().replace(/\+/gi, "%20");
+    //var url = encodeURI('http://203.252.195.182:8080/flows/Darken Behind Me');
+    if(vars.startDate !== undefined && vars.startDate !== null) {
+        if(vars.startDate === "") {
+            url += '/\'1970-01-01\'';
+        }
+        else {
+            url += '/\'' + vars.startDate + '\'';
+        }
+    }
+    if(vars.endDate !== undefined && vars.endDate !== null) {
+        if(vars.endDate === "") {
+            var today = new Date();
+            url += "/\'" + today.toISOString().substring(0, 10) + "\'";
+        }
+        else {
+            url += '/\'' + vars.endDate + '\'';
+        }
+    }
+    if(vars.eventOrActionName !== undefined) {
+        if(vars.eventOrActionName !== "") {
+            url += "/\'" + vars.searchType + "\'" + "/\'" + vars.eventOrActionName + "\'";
+        }
+    }
+    if(vars.eventOrAction !== undefined) {
+        if(vars.eventOrAction !== "") {
+            url += "/\'" + vars.eventOrAction + "\'";
+        }
+    }
+    console.log(url);
+    getJSON(url,  function(err, data) {
+        if (err != null) {
+            console.error(err);
+        }
+        else {
+            var length = data.data.length;
+            var flowData = data.data;
+
+            if(vars.endDate !== undefined && vars.endDate != null) {
+               // if(vars.startDate === "" || vars.endDate === "") {
+                    length = data.data[0].length;
+                    flowData = data.data[0];
+              //  }
+            }
+
+            console.log(length);
+            console.log(flowData);
+            var brNum = 0;
+            var text = "";
+            var create = "";
+
+            var occurNum = "Total Event Flow Occur: " + length + " times <br class=\"m_br\"><br class=\"m_br\">";
+            for (var i = 0; i < length; i++) {
+                brNum = 0;
+                if(flowData[i].methodType == "handlerMethod") {
+                    text += "<span class=\"inline-block\"><h5 style=\"color:LightCoral\">[ handler ]</h5>";
+                }
+                else if(flowData[i].methodType == "methodCall") {
+                    text += "<span class=\"inline-block_s\" style=\"display:none\" id=\"methodCall\"><h5 style=\"color:LightCoral\">[ " + flowData[i].methodType + " ]</h5>";
+                }
+                else {
+                    text += "<span class=\"inline-block\"><h5 style=\"color:LightCoral\">[ " + flowData[i].methodType + " ]</h5>";
+                }
+                if (flowData[i].methodType == "event") {
+                    if (!isNaN(parseInt(flowData[i].methodName))) {
+                        if(flowData[i].capability == "time") {
+                            text += "<img src=\"images/" + flowData[i].capability + ".png\" height=\"70\" width=\"70\">"
+                        }
+                        else {
+                            text += "<span class=\"numberEvent\">LV: " + flowData[i].methodName + "</span><br class=\"m_br\">"
+                        }
+                    } else {
+                        text += "<img src=\"images/" + flowData[i].capability + ".png\" height=\"70\" width=\"70\">"
+                    }
+
+                }
+                /*else if(data.data[i].methodType == "handlerMethod") {
+                    text += "<img src=\"images/handler.png\" height=\"70\" width=\"70\">"
+                }*/
+                else if (flowData[i].methodType == "action") {
+                    if(flowData[i].capability == "Capability") {
+                        text += "<img src=\"images/" + flowData[i].methodName + ".png\" height=\"70\" width=\"70\">"
+                    }
+                    else {
+                        text += "<img src=\"images/" + flowData[i].capability + ".png\" height=\"70\" width=\"70\">"
+                    }
+                }
+                else {
+                    brNum += 2;
+                }
+                text += "<ul><li>name: " + flowData[i].methodName + "<br class=\"m_br\"></li>";
+                var devName = flowData[i].deviceName;
+                var capName = flowData[i].capability;
+                if(capName == "scheduleMethodCall") {
+                    text += "<li>type: schedule method<br class=\"m_br\"></li>";
+                }
+                else {
+                    brNum++;
+                }
+                if (devName == "this" || devName == "Devices") {
+                    brNum++;
+
+                } else {
+                    text += "<li>device: " + devName + "<br class=\"m_br\"></li>";
+                }
+                /*if(capName == "event" || capName == "handlerMethod") {
+                    brNum++;
+                }
+                else {
+                    text += "capability: " + capName + "<br/>";
+                }*/
+
+                create = new Date(flowData[i].createdAt).toString();
+                var create2 = create.split("GMT");
+                text += "<li>Occur: " + create2[0] + "</li></ul>";
+
+                for (var j = 0; j < brNum + 1; j++) {
+                    text += "<br class=\"m_br\">";
+                }
+                text += "</span>";
+                if(flowData[i].methodType == "methodCall")
+                    text += "<span class=\"inline-block2_s\" style=\"display:none\" id=\"methodCall\"><p>->></p></span>";
+                else
+                    text += "<span class=\"inline-block2\"><p>->></p></span>"
+            }
+            //var text = data.data[0].appName;
+            //var text = data.data.length
+            //console.log(text);
+            console.log(create2);
+            document.getElementById("mylist").innerHTML = text;
+            document.getElementById("lastevent").innerText = "Last Event Flow Occur Time: " + create2[0];
+            document.getElementById("occurnum").innerHTML = occurNum;
+        }
+    });
+
+	var url = 'http://203.252.195.182:8080/events/' + vars.appName.toString().replace(/\+/gi, "%20");
+    if(vars.startDate !== undefined && vars.startDate !== null) {
+        if(vars.startDate === "") {
+            url += '/\'1970-01-01\'';
+        }
+        else {
+            url += '/\'' + vars.startDate + '\'';
+        }
+    }
+    if(vars.endDate !== undefined && vars.endDate !== null) {
+        if(vars.endDate === "") {
+            var today = new Date();
+            url += "/\'" + today.toISOString().substring(0, 10) + "\'";
+        }
+        else {
+            url += '/\'' + vars.endDate + '\'';
+        }
+    }
+	var eventName = {};
+	var max_eventName = "";
+	var max_count = 0;
+	getJSON(url,  function(err, data) {
+        var length = data.data.length;
+        var flowData = data.data;
+
+        if(vars.endDate !== undefined && vars.endDate != null) {
+            //if(vars.startDate === "" || vars.endDate === "") {
+                length = data.data[0].length;
+                flowData = data.data[0];
+           // }
+        }
+		if (err != null) {
+            console.error(err);
+        }
+		else {
+
+			for(var i = 0; i < length; i++){
+				if(eventName[flowData[i].methodName] >= 1) {
+					eventName[flowData[i].methodName] = eventName[flowData[i].methodName]+1;
+				}
+				else {
+					eventName[flowData[i].methodName] = 1;
+				}
+			}
+			
+			for(var i = 0; i < length; i++) {
+				var name = flowData[i].methodName;
+				if(eventName[name] >= 1) {
+					if(max_count <= eventName[name]) {
+						max_eventName = name;
+						max_count = eventName[name];
+					}
+				}
+			}
+		}
+		document.getElementById("rank").innerHTML += "Event / Action statistics result<br class=\"m_br\">";
+		document.getElementById("rank").innerHTML += "<li>The Number of Events: " + length + " times<br class=\"m_br\"></li>";
+		document.getElementById("rank").innerHTML += "<li>Top 1 event: <h5>" + max_eventName + "</h5> - " + max_count + " times<br class=\"m_br\"></li>";
+	});
+	
+	var url = 'http://203.252.195.182:8080/actions/' + vars.appName.toString().replace(/\+/gi, "%20");
+    if(vars.startDate !== undefined && vars.startDate !== null) {
+        if(vars.startDate === "") {
+            url += '/\'1970-01-01\'';
+        }
+        else {
+            url += '/\'' + vars.startDate + '\'';
+        }
+    }
+    if(vars.endDate !== undefined && vars.endDate !== null) {
+        if(vars.endDate === "") {
+            var today = new Date();
+            url += "/\'" + today.toISOString().substring(0, 10) + "\'";
+        }
+        else {
+            url += '/\'' + vars.endDate + '\'';
+        }
+    }
+	var actionName = {};
+	var max_actionName = "";
+	var max_count2 = 0;
+	getJSON(url,  function(err, data) {
+        var length = data.data.length;
+        var flowData = data.data;
+
+        if(vars.endDate !== undefined && vars.endDate != null) {
+            //if(vars.startDate === "" || vars.endDate === "") {
+                length = data.data[0].length;
+                flowData = data.data[0];
+            //}
+        }
+		if (err != null) {
+            console.error(err);
+        }
+		else {
+
+			for(var i = 0; i < length; i++){
+				if(actionName[flowData[i].methodName] >= 1) {
+					actionName[flowData[i].methodName] = actionName[flowData[i].methodName]+1;
+				}
+				else {
+					actionName[flowData[i].methodName] = 1;
+				}
+			}
+			for(var i = 0; i < length; i++) {
+				var name = flowData[i].methodName;
+				if(actionName[name] >= 1) {
+					if(max_count2 <= actionName[name]) {
+						max_actionName = name;
+						max_count2 = actionName[name];
+					}
+				}
+			}
+		}
+		document.getElementById("rank").innerHTML += "<li>The Number of actions: " + length + " times<br class=\"m_br\"></li>";
+		document.getElementById("rank").innerHTML += "<li>Top 1 action: <h5>" + max_actionName + "</h5> - " + max_count2 + " times<br class=\"m_br\"></li>";
+	});
+	
+</script>
+<script>
+    function detailButton_click() {
+        const classN = document.getElementsByClassName("inline-block_s");
+        for(var i = 0; i < classN.length; i++) {
+            if (classN[i].style.display === 'none') {
+                classN[i].style.display = 'inline-block';
+            } else {
+                classN[i].style.display = 'none';
+            }
+        }
+        const classN2 = document.getElementsByClassName("inline-block2_s");
+        for(var j = 0; j < classN2.length; j++) {
+            if (classN2[j].style.display === 'none') {
+                classN2[j].style.display = 'inline-block';
+            } else {
+                classN2[j].style.display = 'none';
+            }
+        }
+    }
+</script>
+</body>
+</html>

@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pattern</title>
+    <link rel="stylesheet" href="css/mainpagestyle2.css">
+</head>
+<body>
+<button style='display: block' onclick='patternSearch();'>before</button>
+<h4 style="font-weight:bold">Pattern</h4>
+<div id="patternDiv"></div>
+</body>
+<script src="js/getJsonData.js"></script>
+<script>
+    var link = document.location.href;
+    var para1 = link.split("?");
+    var para2 = para1[1].split("&")[0];
+    var para3 = para1[1].split("&")[1];
+    var para2 = para2.substring(5, para2.length);
+    var para2 = decodeURI(para2);
+    var data = JSON.parse(para2);
+    var para3 = para3.substring(8, para3.length);
+    var number = data[1].id;
+
+    console.log(data);
+    showFlowData(data);
+
+    function showFlowData(data) {
+        var patternNumText = "";
+        var currPatternNum = 0;
+        var patternStart = 0;
+        var patternEnd = 0;
+        var text = "";
+        var text2 = "";
+        var isPatternNumAdd = false;
+        var isPattern2NumAdd = false;
+        var nextPatternNum = false;
+        number = data[1].id;
+        var currType = "";
+        for(var i = 0; i < data.length; i++) {
+            if (data[i].patternNo != undefined || data[i].patternNo != null) {
+                nextPatternNum = true;
+                /*if(patternNumText == "")
+                    patternNumText += "<div style='color:lightcoral'>" + "pattern" + (parseInt(data[i].patternNo)+1) + "</div>";
+                else {
+                    patternNumText += text;
+                    patternNumText += "<div style='color:lightcoral'>" + "pattern2" + (parseInt(data[i].patternNo)+1) + "</div>";
+                }*/
+                // = parseInt(data[i].patternNo);
+                /*if(currPatternNum > 0) {
+                    text = "<div style='color:lightcoral'>" + "pattern" + currPatternNum + "</div>" + text;
+                    text += "<div style='color:lightcoral'>" + "pattern" + (currPatternNum + 1) + "</div>";
+                }
+                currPatternNum++;
+                subStart = i+1;*/
+                if(currPatternNum > 0) {
+                    isPatternNumAdd = true;
+                    text = "<div style='color:darkgoldenrod;font-weight:bold'>" + "pattern" + (parseInt(data[i].patternNo)) + "</div>" + text;
+                    text += "<div style='color:darkgoldenrod;font-weight:bold'>" + "pattern" + (parseInt(data[i].patternNo) + 1) + "</div>";
+                }
+                currPatternNum = (parseInt(data[i].patternNo)+1);
+                patternStart = i+1;
+            }
+            else if(data[i].patternNo2 != undefined || data[i].patternNo2 != null) {
+                if(parseInt(data[i].patternNo2) == 0)
+                    patternEnd = i-1;
+
+                //console.log(subPattern(patternStart, patternEnd, data));
+
+                if(parseInt(data[i].patternNo2) > 0) {
+                    isPattern2NumAdd = true;
+                    if(currPatternNum == 1) {
+                            //text = "<div style='color:lightcoral'>" + "pattern" + currPatternNum + "</div>" + text;
+                    }
+                    text += "<div style='color:darkgoldenrod;font-weight:bold'>" + "pattern" + currPatternNum + "-" + (parseInt(data[i].patternNo2)+1) + "</div>";
+                    text += subPattern(patternStart, patternEnd, data);
+                }
+                //if(text2 == "")
+                    //text2 = text;
+                //else  {
+                    //text += "<div style='color:lightcoral'>" + "pattern2 " + (parseInt(data[i].patternNo2)+1) + "</div>";
+                    //text += text2;
+                //}
+                //console.log(subPattern(subStart, subEnd));
+                //console.log(subPattern(subStart, i-1, data));
+                /*if(parseInt(data[i].patternNo2) == 0) {
+                    subEnd = i-1;
+                }
+                text += "<div style='color:lightcoral'>" + "pattern" + currPatternNum + "</div>";
+                text += subPattern(subStart, subEnd, data);
+                currPatternNum++;
+                //console.log(subPattern(subStart, subEnd, data));*/
+                //text += "<div style='color:lightcoral'>" + "pattern" + currPatternNum + "-" + (parseInt(data[i].patternNo2)+1) + "</div>";
+            }
+            else {
+                var type = data[i].methodType;
+                var name = data[i].methodName;
+                var capability = data[i].capability;
+                var deviceName = data[i].deviceName;
+                var dateTime = data[i].createdAt;
+                var d = dateTime.split("T");
+                var d2 = d[1].split(".");
+                var datetime = d[0] + "-" + d2[0];
+                if (deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length - 1);
+                if (type == "handlerMethod") {
+                    if(currType == "action" && nextPatternNum == false)
+                        text += "<span style='display: inline-block;' class='arrowSpan'>-></span>";
+                    currType = "handlerMethod";
+                    text += "<span class='elementSpan'><ul>";
+                    text += "<li style='color:lightcoral;font-weight:bold'>[handler]</li>";
+                    text += "<li>name: " + name + "</li>";
+                    text += "<li>occur: " + datetime + "</li>";
+                    text += "</ul></span>";
+                    text += "<span style='display: inline-block;' class='arrowSpan'>-></span>";
+                    nextPatternNum = false;
+                }
+
+                if (type == "methodCall") {
+                    //if(currType == "action")
+                        //text += "<span style='display: inline-block;' class='arrowSpan'>-></span>";
+                    currType = "methodCall";
+                    /*text += "<span class='elementSpan'><ul>";
+                text += "<li>[" + type + "]</li>";
+                text += "<li>name: " + name + "</li>";
+                text += "<li>occur: " + datetime + "</li>";
+                text += "</ul></span>";
+                text += "<span class='arrowSpan'>-></span>";*/
+                }
+                if (type == "event") {
+                    if(currType == "action" && nextPatternNum == false)
+                        text += "<span style='display: inline-block;' class='arrowSpan'>-></span>";
+                    currType = "event";
+                    var img_path;
+                    if (capability == "time")
+                        img_path = "\"image/" + capability + ".png\"";
+                    else
+                        img_path = "\"image/" + capability + "_" + name + ".png\"";
+                    text += "<span class='elementSpan'><a href='#'><ul>";
+                    text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                    if (parseInt(name)) {
+                        console.log("number");
+                        text += "<li style='color:lightcoral'>" + name + "</li>";
+                    } else
+                        text += "<li><img src=" + img_path + ">" + "</li>";
+                    text += "<li>name: " + name + "</li>";
+                    text += "<li>cap: " + capability + "</li>";
+                    text += "<li>device: " + deviceName + "</li>";
+                    text += "<li>occur: " + dateTime + "</li>";
+                    text += "</ul></a></span>";
+                    text += "<span style='display: inline-block;' class='arrowSpan'>-></span>";
+                    nextPatternNum = false;
+                }
+                if (type == "action") {
+                    currType = "action";
+                    var img_path = "\"image/" + capability + "_" + name + ".png\"";
+                    text += "<span class='elementSpan'><a href='#'><ul>";
+                    text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                    text += "<li><img src=" + img_path + ">" + "</li>";
+                    text += "<li>name: " + name + "</li>";
+                    text += "<li>cap: " + capability + "</li>";
+                    text += "<li>device: " + deviceName + "</li>";
+                    text += "<li>occur: " + dateTime + "</li>";
+                    text += "</ul></a></span>";
+                    nextPatternNum = false;
+                }
+            }
+        }
+        //patternNumText += text;
+        if(isPatternNumAdd == false)
+            text = "<div style='color:darkgoldenrod;font-weight:bold'>" + "pattern1" + "</div>" + text;
+        document.getElementById("patternDiv").innerHTML = text;
+    }
+
+    function subPattern(start, end, data) {
+        var text = "";
+        var currType = "";
+        for(var i = start; i <= end; i++) {
+            var type = data[i].methodType;
+            var name = data[i].methodName;
+            var capability = data[i].capability;
+            var deviceName = data[i].deviceName;
+            var dateTime = data[i].createdAt;
+            var d = dateTime.split("T");
+            var d2 = d[1].split(".");
+            var datetime = d[0] + "-" + d2[0];
+            if (deviceName.includes("[") && deviceName.includes("]")) deviceName = deviceName.substring(1, deviceName.length - 1);
+            if (type == "handlerMethod") {
+                if (currType == "action" && i < end)
+                    text += "<span style='display: inline-block;' class='arrowSpan'>-></span>";
+                currType = "handlerMethod";
+                text += "<span class='elementSpan'><ul>";
+                text += "<li style='color:lightcoral;font-weight:bold'>[handler]</li>";
+                text += "<li>name: " + name + "</li>";
+                text += "<li>occur: " + datetime + "</li>";
+                text += "</ul></span>";
+                if(i < end)
+                    text += "<span style='display: inline-block;' class='arrowSpan'>-></span>";
+            }
+
+            if (type == "methodCall") {
+                //if(currType == "action")
+                //text += "<span style='display: inline-block;' class='arrowSpan'>-></span>";
+                currType = "methodCall";
+                /*text += "<span class='elementSpan'><ul>";
+        text += "<li>[" + type + "]</li>";
+        text += "<li>name: " + name + "</li>";
+        text += "<li>occur: " + datetime + "</li>";
+        text += "</ul></span>";
+        text += "<span class='arrowSpan'>-></span>";*/
+            }
+            if (type == "event") {
+                if (currType == "action" && i < end)
+                    text += "<span style='display: inline-block;' class='arrowSpan'>-></span>";
+                currType = "event";
+                var img_path;
+                if (capability == "time")
+                    img_path = "\"image/" + capability + ".png\"";
+                else
+                    img_path = "\"image/" + capability + "_" + name + ".png\"";
+                text += "<span class='elementSpan'><a href='#'><ul>";
+                text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                if (parseInt(name)) {
+                    console.log("number");
+                    text += "<li style='color:lightcoral'>" + name + "</li>";
+                } else
+                    text += "<li><img src=" + img_path + ">" + "</li>";
+                text += "<li>name: " + name + "</li>";
+                text += "<li>cap: " + capability + "</li>";
+                text += "<li>device: " + deviceName + "</li>";
+                text += "<li>occur: " + dateTime + "</li>";
+                text += "</ul></a></span>";
+                if(i < end)
+                    text += "<span style='display: inline-block;' class='arrowSpan'>-></span>";
+            }
+            if (type == "action") {
+                currType = "action";
+                var img_path = "\"image/" + capability + "_" + name + ".png\"";
+                text += "<span class='elementSpan'><a href='#'><ul>";
+                text += "<li style='color:lightcoral;font-weight:bold'>[" + type + "]</li>";
+                text += "<li><img src=" + img_path + ">" + "</li>";
+                text += "<li>name: " + name + "</li>";
+                text += "<li>cap: " + capability + "</li>";
+                text += "<li>device: " + deviceName + "</li>";
+                text += "<li>occur: " + dateTime + "</li>";
+                text += "</ul></a></span>";
+            }
+        }
+        return text;
+    }
+    function patternSearch() {
+        console.log(para3 + "/" + number);
+        getJSON(para3 + '/' + number, function(err, data) {
+            if (err != null) console.error(err);
+            else {
+                flowInfo = data.data;
+                console.log(flowInfo);
+                showFlowData(flowInfo);
+
+            }
+        });
+    }
+</script>
+</html>

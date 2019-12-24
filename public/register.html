@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" charset="UTF-8"/>
+    <title>SmartApp-Monitor</title>
+    <link href="css/responsive_style2.css" type="text/css" rel="stylesheet"/>
+    <link rel="apple-touch-icon" sizes="180x180" href="image/monitoring_Logo.jpg"/>
+    <link rel="shortcut icon" sizes="192x192" href="image/monitoring_Logo.jpg"/>
+</head>
+<body onkeyup="enterkey();">
+<div id="wrapper">
+    <div class="form_div">
+        <p class="form_label">Register</p>
+        <form method="post" action="#">
+            <p><input type="text" name="email" id="email" placeholder="Enter Email"></p>
+            <p><input type="password" name="pw" id="pw" placeholder="**********"></p>
+            <p><input id="registerButton" class="login register-submit" name="registerButton" type="button" value="Register" onclick=register();></p>
+            <!--<p><input type="submit" value="LOGIN"></p>-->
+        </form>
+    </div>
+    <!--<br>
+    <br>
+    <br>
+    <div class="form_div">
+        <p class="form_label">SIGNUP FORM</p>
+        <form method="post" action="">
+            <p><input type="text" placeholder="Enter Name"></p>
+            <p><input type="text" placeholder="Enter Email"></p>
+            <p><input type="password" placeholder="**********"></p>
+            <p><input type="submit" value="SIGNUP"></p>
+        </form>
+    </div>-->
+
+</div>
+<script src="js/getJsonData.js"></script>
+<script>
+    function enterkey() {
+        if(window.event.keyCode === 13) {
+            register();
+        }
+    }
+    /*function login() {
+        var id = document.getElementById("email").value;
+        var pw = document.getElementById("pw").value;
+        getJSON('http://' + ipAddress + port1 + '/login/' + id + '/' + pw,  function(err, data) {
+            if(data !== undefined) {
+                sessionStorage.setItem('userId', document.getElementById("email").value);
+                location.href="main2.html";
+            }
+            else {
+                alert("There is not the account!");
+            }
+        });
+    }*/
+    function register() {
+        var id = document.getElementById("email").value;
+        var pw = document.getElementById("pw").value;
+        getJSON('http://' + ipAddress + port1 + '/register/' + id + '/' + pw, function(err, data) {
+            if(data.message == "success") {
+                sessionStorage.setItem('userId', document.getElementById("email").value);
+                location.href="main2.html";
+            }
+            else {
+                alert("The account already exists");
+            }
+        });
+
+    }
+</script>
+</body>
+</html>

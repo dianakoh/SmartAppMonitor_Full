@@ -1,0 +1,150 @@
+<!DOCTYPE HTML>
+<!--
+	TXT by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+<head>
+    <title>SmartApp List</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+    <link rel="stylesheet" href="assets/css/main.css" />
+    <script>
+        var appList = [];
+        var getJSON = function(url, callback) {
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('GET', url, true);
+            xhr.responseType = 'json';
+
+            xhr.onload = function() {
+
+                var status = xhr.status;
+
+                if (status == 200) {
+                    callback(null, xhr.response);
+                } else {
+                    callback(status);
+                }
+            };
+
+            xhr.send();
+        };
+
+        getJSON('http://203.252.195.182:8080/smartapps',  function(err, data) {
+            if (err != null) {
+                console.error(err);
+            } else {
+                var text = "";
+                for(var i = 0; i < data.data.length; i++ ){
+                    appList.push(data.data[i].appName);
+                    var app = data.data[i].appName;
+                    var create = new Date(data.data[i].createdAt);
+                    var create2 = create.toString().split("GMT");
+                    var uri = "EventList?appName=" + app;
+                    text += "<li> <article class=\"box post-summary\"> <h3><a href=\""+ encodeURI(uri)+"\">" + app + "</a></h3> <ul class=\"meta\"> <li class=\"icon fa-clock-o\">" + "Installed Time: "+ create2[0] + "</li> </ul> </article> </li>";
+                }
+                console.log(text);
+                document.getElementById("mypanel").innerHTML = text;
+            }
+        });
+    </script>
+</head>
+<body class="is-preload">
+<div id="page-wrapper">
+
+    <!-- Header -->
+    <header id="header">
+        <div class="logo container">
+            <div>
+                <h1><a href="index.html" id="logo">SmartApp</a></h1>
+                <p>List</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main -->
+    <section id="main">
+        <div class="container">
+            <div class="row">
+                <!--<div class="col-3 col-12-medium">-->
+                <div class="col-9 col-12-medium imp-medium">
+                    <div class="sidebar">
+
+                        <!-- Sidebar -->
+
+                        <!-- Recent Posts -->
+                        <section>
+                            <h2 class="major"><span>SmartApp</span></h2>
+                            <ul class="divided" id="mypanel">
+                                <!--<li>
+                                    <article class="box post-summary">
+                                        <h3><a href="#">A Subheading</a></h3>
+                                        <ul class="meta">
+                                            <li class="icon fa-clock-o">6 hours ago</li>
+                                            <li class="icon fa-comments"><a href="#">34</a></li>
+                                        </ul>
+                                    </article>
+                                </li>
+                                <li>
+                                    <article class="box post-summary">
+                                        <h3><a href="#">Another Subheading</a></h3>
+                                        <ul class="meta">
+                                            <li class="icon fa-clock-o">9 hours ago</li>
+                                            <li class="icon fa-comments"><a href="#">27</a></li>
+                                        </ul>
+                                    </article>
+                                </li>
+                                <li>
+                                    <article class="box post-summary">
+                                        <h3><a href="#">And Another</a></h3>
+                                        <ul class="meta">
+                                            <li class="icon fa-clock-o">Yesterday</li>
+                                            <li class="icon fa-comments"><a href="#">184</a></li>
+                                        </ul>
+                                    </article>
+                                </li>-->
+                            </ul>
+                            <a href="main" class="button alt" style="position: absolute;  right: 10%;">Main Page</a>
+                        </section>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer-->
+        <footer id="footer">
+            <div class="container">
+                <div class="row gtr-200">
+                    <div class="col-12">
+
+                    </div>
+                </div>
+
+                <!-- Copyright -->
+    <div id="copyright">
+        <ul class="menu">
+            <li>&copy; Untitled. All rights reserved</li><li>Design: <a href="http://html5up.net">HTML5 UP</a></li>
+        </ul>
+    </div>
+
+    </div>
+</footer>
+
+</div>
+
+<!-- Scripts -->
+<script src="assets/js/jquery.min.js"></script>
+<script src="assets/js/jquery.dropotron.min.js"></script>
+<script src="assets/js/jquery.scrolly.min.js"></script>
+<script src="assets/js/browser.min.js"></script>
+<script src="assets/js/breakpoints.min.js"></script>
+<script src="assets/js/util.js"></script>
+<script src="assets/js/main.js"></script>
+
+</body>
+</html>

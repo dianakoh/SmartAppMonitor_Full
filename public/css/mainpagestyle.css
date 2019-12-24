@@ -1,0 +1,130 @@
+body {
+    display: grid;
+    grid-template-areas:
+            "header header header"
+            "ads article nav"
+            "footer footer footer";
+    grid-template-rows: 60px 1fr 60px;
+    grid-template-columns: 15% 1fr 15%;
+    grid-gap: 10px;
+    /*height: 100vh;*/
+    margin: 0;
+}
+header, footer, article, nav, div {
+    padding: 20px;
+    background-color: gold;
+}
+#pageHeader {
+    grid-area: header;
+    text-align: center;
+}
+#pageFooter {
+    grid-area: footer;
+}
+#mainArticle {
+    grid-area: article;
+    background-color: white;
+}
+#mainArticle > div {
+    background-color: white;
+}
+#mainArticle > div > div {
+    background-color: white;
+}
+#mainNav {
+    grid-area: nav;
+    background-color: #F7F7F7;
+}
+#siteAds {
+    grid-area: ads;
+}
+.userInfo {
+    background-color: #F7F7F7;
+}
+.userInfo > button {
+    float:right;
+}
+#userIconDiv {
+    margin:0;
+    text-align: center
+}
+.menu {
+    background-color: #F7F7F7;
+}
+.menu > a {
+    text-decoration: none;
+    color: black;
+}
+h1, h2, h3, h4, h5 {
+    text-align: center;
+    margin: 0;
+}
+
+a {
+    text-decoration: none;
+    color:inherit;
+}
+
+header > i {
+    margin-right:10px;
+    display:inline-block
+}
+
+header > h2 {
+    display:inline-block;
+}
+
+#mainContents {
+    display: grid;
+    grid-template-areas: "applist appinfo" "eventactiongraph provenance";
+    /*grid-template-rows: 1fr 1fr;*/
+    grid-template-columns: 40% 60%;
+    grid-gap: 10px;
+    /*height: 100vh;*/
+    margin: 0;
+}
+#mainContents > div {
+    border: solid 1px #F7F7F7;
+}
+
+#applist > h1, h2, h3, h4, h5, p {
+    text-align: left;
+    margin-bottom: 10px;
+}
+#applist > ul {
+    list-style: none;
+    padding-left:0;
+}
+
+#appinfo > div {
+    background-color: white;
+}
+#flowinfo {
+    padding:0;
+}
+#provenance > div {
+    background-color: white;
+}
+#realtime {
+    border: solid 1px #F7F7F7;
+}
+
+.elementSpan {
+    display:inline-block;
+    width:30%
+}
+
+.elementSpan > ul {
+    list-style:none;
+}
+.elementSpan > a > ul {
+    list-style:none;
+}
+.elementSpan > a > ul > li > img {
+    width:30px;
+    height:30px;
+}
+.arrowSpan {
+    display:inline-block;
+    width:3%;
+}
