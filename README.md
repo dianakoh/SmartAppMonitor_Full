@@ -1,4 +1,4 @@
-# SmartAppMonitor_Full
+# SmartAppMonitor
 *Software Languages Lab, Computer Science, Sookmyung Women's University*
 
 SmartThings
@@ -12,3 +12,8 @@ SmartAppMonitor
 SmartAppMonitor monitors SmartApps in real-time and displays profile data and provenance data.
 
 ![SmartAppMonitor](https://github.com/dianakoh/SmartAppMonitor_Full/blob/master/SmartAppMonitor_result.png)
+
+> **Note: **
+> - Real-time Monitor helps users immediately see what's happening in their SmartApp.
+> - Profile data shows the event flow that occurred in the past in SmartApps.
+> - Provenance data helps users understand the flow of SmartApps and identify issues.
