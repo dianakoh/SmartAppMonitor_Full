@@ -10,3 +10,5 @@ SmartThings
 SmartAppMonitor
 -----------------------
 SmartAppMonitor monitors SmartApps in real-time and displays profile data and provenance data.
+
+![SmartAppMonitor](https://github.com/dianakoh/SmartAppMonitor_Full/blob/master/SmartAppMonitor_result.png)
