@@ -77,7 +77,6 @@ app.get('/login/:id/:pw', (req, res) => {
 			password: pw
 		}
 	}).then(users => {
-		//console.log(users);
 		if(users.length != 0) {
 			res.setHeader('Access-Control-Allow-Origin', '*');
 			res.status(200);
@@ -111,13 +110,11 @@ app.get('/register/:id/:pw', (req, res) => {
 				res.status(200);
 				return res.json({message:"success"});
 			});
-			//}).then(() => res.redirect('http://cs.sookmyung.ac.kr/~uslab/gy/smartAppMonitor/index.html' + '?success=true'))
 		}	
 		else {
 			res.setHeader('Access-Control-Allow-Origin', '*');
 			res.status(200);
 			return res.json({message:"The account already exists"});
-			//res.redirect('http://cs.sookmyung.ac.kr/~uslab/gy/smartAppMonitor/index.html' + '?success=false');
 		}
 	});
 });
@@ -162,7 +159,6 @@ app.get('/flows/all', (req, res) => {
 
 app.get('/flows/:id', (req, res) => {
 	const appName = req.params.id;
-	console.log(appName);
 	
 	if(!appName.length) {
 		return res.status(400).json({error: 'Incorrect appName'});
@@ -252,8 +248,6 @@ app.get('/flows/:appName/:id', (req, res) => {
 app.get('/flowsbyUser/:appName/:id', (req, res) => {
 	const appName = req.params.appName;
 	const userId = req.params.id;
-	console.log(appName);
-	console.log(userId);
 
 	models.sequelize.query("SELECT * FROM Flows WHERE appName=\'" + appName + "\' and userId=\'" +  userId + "\'")
 	.then(function(flows) {
@@ -279,7 +273,6 @@ app.get('/flows/:id/:startd/:endd', (req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.status(200);
 		return res.json({success: true, data:flows});
-		//return res;
 	});
 });
 app.get('/flowsbyUser/:appName/:id/:startd/:endd', (req, res) => {
@@ -296,7 +289,6 @@ app.get('/flowsbyUser/:appName/:id/:startd/:endd', (req, res) => {
 		res.setHeader('Access-Control-Allow-Origin', '*');
 		res.status(200);
 		return res.json({success: true, data:flows});
-		//return res;
 	});
 });
 
@@ -433,8 +425,6 @@ async function processNextFindingPattern(appName, userId, type, deviceNames, met
 				processFindingPattern2(appName, userId, re.id, eOrAId, type2, deviceNames2, methodNames2, function(re2) {
 					if(returnString == "") returnString += returnString2 + "," + re2;
 					else returnString += "," + returnString2 + "," + re2;
-					//returnString = returnString + "," + re2;
-					//return callback(returnString);
 				});
 			}
 		});
@@ -477,7 +467,6 @@ app.get('/flowsbyUserFindPattern/:appName/:id/pattern1/:fPattern/pattern2/:pPatt
 	const userId = req.params.id;
 	const pattern1 = req.params.fPattern;
 	const pattern2 = req.params.pPattern;
-	//const Op = require('sequelize').Op;
 
 	var type = "";
 	var type2 = "";
@@ -549,7 +538,6 @@ async function processFindingPattern(appName, userId, type, deviceNames, methodN
 				processFindingPattern2(appName, userId, re.id, eOrAId, type2, deviceNames2, methodNames2, function(re2) {
 					if(returnString == "" ) returnString += returnString2 + "," + re2;
 					else returnString += "," + returnString2 + "," + re2;
-					//return callback(returnString);
 				});
 			}
 		});
@@ -559,7 +547,6 @@ async function processFindingPattern(appName, userId, type, deviceNames, methodN
 		callback(null);
 	}
 	else {
-		//onsole.log(returnString);
 		callback(returnString);
 	}
 }
@@ -579,7 +566,6 @@ async function processFindingPattern2(appName, userId, id, eventOrActionId, type
 					tempst += re;
 				}
 				st2 += tempst;
-				//callback(re);
 			}
 		});
 		await delayCall2();
@@ -677,14 +663,10 @@ app.get('/flowsbyUser/:appName/:id/:proveType/:deviceName/:methodName/:datetime'
 
 	if(proveType == 'whyAction') {
 		proveType = 'action';
-
-		//const sql_init = "SELECT * FROM Flows WHERE appName=\'" + appName + "\' and userId=\'" + userId + "\'";
 		var sql = sql_init + " and methodType=\'" + proveType + "\' and deviceName like \'%" + deviceName + "%\' and methodName=\'" + methodName + "\'";
 		sql += " and date_format(createdAt, " + dateFormat + ") >= date_format(\'" + startDateString + "\', " + dateFormat + ")"
 		sql += " and date_format(createdAt, " + dateFormat + ") <= date_format(\'" + endDateString + "\', " + dateFormat + ")";
 	
-		//var resultString = "":
-		//
 		query(sql, function(re) {
 			if(re == null) {
 				res.status(404).json({success: false, data: 'No Flows'});
@@ -692,7 +674,6 @@ app.get('/flowsbyUser/:appName/:id/:proveType/:deviceName/:methodName/:datetime'
 			else {
 				var result = JSON.stringify(re);
 				result = result.substring(1, result.length-1);
-				//sql = sql_init + " and methodType=\'event\' and eventOrActionId=\'" + re[0].dependencyId + "\'";
 				sql = sql_init + " and eventOrActionId=\'" + re[0].dependencyId + "\' and id < " + re[0].id  + " order by id desc limit 1";
 				query1(sql, "", function(returnSt) {
 					if(returnSt == "") {
@@ -728,7 +709,6 @@ app.get('/flowsbyUser/:appName/:id/:proveType/:deviceName/:methodName/:datetime'
 			else {
 				var result = JSON.stringify(re);
 				result = result.substring(1, result.length-1);
-				//sql = sql_init + " and methodType=\'action\' and eventOrActionId like \'%" + re[0].dependencyId + "%\'";
 				sql = sql_init + " and eventOrActionId like \'%" + re[0].dependencyId + "%\' and id < " + re[0].id + " order by id desc limit 1";
 				query1(sql, "", function(returnSt) {
 					if(returnSt == "") {
@@ -757,7 +737,6 @@ app.get('/flowsbyUser/:appName/:id/:proveType/:deviceName/:methodName/:datetime'
 		sql += " and date_format(createdAt, " + dateFormat + ") >= date_format(\'" + startDateString + "\', " + dateFormat + ")";
 		sql += " and date_format(createdAt, " + dateFormat + ") <= date_format(\'" + endDateString + "\', " + dateFormat + ")";
 
-		//console.log(sql);
 		query(sql, function(re) {
 			if(re == null) {
 				res.status(404).json({success: false, data: 'No Flows'});
@@ -765,7 +744,6 @@ app.get('/flowsbyUser/:appName/:id/:proveType/:deviceName/:methodName/:datetime'
 			else {
 				var result = JSON.stringify(re);
 				result = result.substring(1, result.length-1);
-				//sql = sql_init + " and methodType=\'action\' and dependencyId like \'%" + re[0].eventOrActionId + "%\'";
 				sql = sql_init + " and dependencyId like \'%" + re[0].dependencyId + "%\' and id > " + re[0].id + " limit 1";
 				query5_3(sql, "", function(returnSt) {
 					if(returnSt == "") {
@@ -789,7 +767,6 @@ app.get('/flowsbyUser/:appName/:id/:proveType/:deviceName/:methodName/:datetime'
 	}
 
 	if(proveType == 'whatEvent') {
-		console.log("whatEvent");
 		proveType = 'action';
 		
 		var sql = sql_init + " and methodType=\'" + proveType + "\' and deviceName like \'%" + deviceName + "%\' and methodName=\'" + methodName + "\'";
@@ -806,7 +783,6 @@ app.get('/flowsbyUser/:appName/:id/:proveType/:deviceName/:methodName/:datetime'
 				var eaid = re[0].eventOrActionId;
 				if(eaid.includes("[") && eaid.includes("]"))
 					eaid = eaid.substring(1, eaid.length-1);
-				//sql = sql_init + " and methodType=\'event\' and dependencyId=\'" + eaid + "\'";
 				sql = sql_init + " and dependencyId=\'" + eaid + "\' and id > " + re[0].id + " limit 1";
 				query5_1(sql, "", function(returnSt) {
 					if(returnSt == "") {
@@ -873,7 +849,6 @@ function query2(sql, returnString, callback) {
 			else returnString = returnString + "," + result;
 			var data = flows[0];
 			var eaid = data[0].dependencyId;
-			//var sql1 = "SELECT * FROM Flows WHERE appName=\'" + data[0].appName + "\' and userId=\'" + data[0].userId + "\' and methodType=\'action\' and eventOrActionId LIKE \'%" + eaid + "%\'";
 			var sql1 = "SELECT * FROM Flows WHERE appName=\'" + data[0].appName + "\' and userId=\'" + data[0].userId + "\' and eventOrActionId LIKE \'%" + eaid + "%\' order by id desc limit 1";
 			models.sequelize.query(sql1)
 			.then(function(flows2) {
@@ -884,10 +859,8 @@ function query2(sql, returnString, callback) {
 					returnString = returnString + "," + result2;
 					var data = flows2[0]
 					var eaid = data[0].dependencyId;
-					//var sql2 = "SELECT * FROM Flows WHERE appName=\'" + data[0].appName + "\' and userId=\'" + data[0].userId + "\' and methodType=\'event\' and eventOrActionId=\'" + eaid + "\'";
 					var sql2 = "SELECT * FROM Flows WHERE appName=\'" + data[0].appName + "\' and userId=\'" + data[0].userId + "\' and eventOrActionId=\'" + eaid + "\' order by id desc limit 1";
 					query2(sql2, returnString, callback);
-					//return callback(returnString);
 				}
 			});
 
@@ -896,7 +869,6 @@ function query2(sql, returnString, callback) {
 }
 
 function query3(sql, returnString, callback) {
-	console.log(sql);
 	models.sequelize.query(sql)
 	.then(function(flows) {
 		if(flows[0].length < 1) return callback(returnString);
@@ -928,7 +900,6 @@ function query3(sql, returnString, callback) {
 }
 
 function query4(sql, returnString, callback){
-	console.log(sql);
 	models.sequelize.query(sql)
 	.then(function(flows) {
 		if(flows[0].length < 1) return callback(returnString);
@@ -965,7 +936,6 @@ function query4(sql, returnString, callback){
 }
 
 function query5(sql, returnString, callback) {
-	console.log(sql);
 	models.sequelize.query(sql)
 	.then(function(flows) {
 		if(flows[0].length < 1) return callback(returnString);
@@ -987,12 +957,10 @@ function query5(sql, returnString, callback) {
 					result2 = result2.substring(1, result2.length-1);
 					returnString = returnString + "," + result2;
 					var data = flows2[flows2.length-1];
-					console.log(data);
 					var eaid = data[0].eventOrActionId;
 					if(eaid.includes("[") && eaid.includes("]"))
 						eaid = eaid.substring(1, eaid.length-1);
 					var sql2 = "SELECT * FROM Flows WHERE appName=\'" + data[0].appName + "\' and userId=\'" + data[0].userId + "\' and methodType=\'event\' and dependencyId=\'" + eaid + "\'";
-					//return callback(returnString);
 					query5(sql2, returnString, callback);
 				}
 			});
@@ -1011,7 +979,6 @@ function query5_1(sql, returnString, callback) {
 			result = result.substring(1, result.length-1);
 			if(returnString == "") returnString = result;
 			else returnString = returnString + "," + result;
-			//console.log(returnString);
 			var data = flows[0];
 			var eaid = data[0].eventOrActionId;
 			var sql1 = "";
@@ -1035,7 +1002,6 @@ function query5_3(sql, returnString, callback) {
 			result = result.substring(1, result.length-1);
 			if(returnString == "") returnString = result;
 			else returnString = returnString + "," + result;
-			//console.log(returnString);
 			var data = flows[0];
 			var eaid = data[0].eventOrActionId;
 			var sql1 = "";
@@ -1088,7 +1054,6 @@ function query5_3(sql, returnString, callback) {
 	}).then(function(flows) {
 		if(!flows) callback(null);
 		else  {
-			console.log(JSON.stringify(flows));
 			callback(JSON.stringify(flows));
 		}
 	});
@@ -1249,7 +1214,6 @@ app.get('/events/:id', (req, res) => {
 app.get('/events/:appName/:userId', (req, res) => {
 	const appName = req.params.appName;
 	const userId = req.params.userId; 
-	//console.log(appName);
 	
 	if(!appName.length) {
 		return res.status(400).json({error: 'Incorrect appName'});
@@ -1310,7 +1274,6 @@ app.get('/actions', (req, res) => {
 
 app.get('/actions/:id', (req, res) => {
 	const appName = req.params.id;
-	console.log(appName);
 	
 	if(!appName.length) {
 		return res.status(400).json({error: 'Incorrect appName'});
@@ -1336,7 +1299,6 @@ app.get('/actions/:id', (req, res) => {
 app.get('/actions/:appName/:userId', (req, res) => {
 	const appName = req.params.appName;
 	const userId = req.params.userId;
-	//console.log(appName);
 	
 	if(!appName.length) {
 		return res.status(400).json({error: 'Incorrect appName'});

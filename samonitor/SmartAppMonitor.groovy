@@ -644,7 +644,7 @@ class SmartAppMonitor extends CompilationCustomizer{
             else if(methName.equals("installed")) {
                 //String code = "\t//Inserted Code\n"
                 String code = ""
-                code += "\tsmartAppMonitor.setData(app.getName(), \"\${monitoringID}\", \"" + methName + "\", \"methodCall\", \"this\", \"methodCall\")"
+                code += "\tsmartAppMonitor.setData(app.getName(), \"\${monitoringID}\", \"" + methName + "\", \"methodCall\", \"this\", \"methodCall\", \"\${settings}\")"
                 code += "\n\tcreateAccessToken()"
                 if(meth.getFirstStatement() != null) {
                     insertCodeMap.add(["code": code, "lineNumber": meth.getFirstStatement().getLineNumber(), "addedLine": 2, "exception": 0])

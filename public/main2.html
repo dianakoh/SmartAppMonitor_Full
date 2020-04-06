@@ -85,9 +85,10 @@
                     app2 = "\"" + app + "\"";
                     var detail = data.data[i].detail;
                     if(detail != null) {
-                        detail = "\"" + detail.substring(1, detail.length - 1) + "\"";
+                        //detail = "\"" + detail.substring(1, detail.length - 1) + "\"";
+                        detail = "";
                     }
-                    text += "<li><h4 onclick=showInfo(this.innerHTML," + detail+ ");>" + app + "</h4>"; // + "<h4 style='display:inline-block' onclick=deleteApp(" + app2 + ");>&nbsp; &nbsp; &nbsp; &nbsp;X</h4></li>";
+                    text += "<li><h4 onclick=showInfo(this.innerHTML," + detail + ");>" + app + "</h4>"; // + "<h4 style='display:inline-block' onclick=deleteApp(" + app2 + ");>&nbsp; &nbsp; &nbsp; &nbsp;X</h4></li>";
                 }
             }
             text += "</ul>";
