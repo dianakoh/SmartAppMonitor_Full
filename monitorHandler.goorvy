@@ -1,0 +1,209 @@
+/**
+ *  Monitor Handler
+ *
+ *  Copyright 2019 GayoungKoh
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
+ *  in compliance with the License. You may obtain a copy of the License at:
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
+ *  for the specific language governing permissions and limitations under the License.
+ *
+ */
+metadata {
+	definition (name: "MonitorHandler", namespace: "dianakoh", author: "GayoungKoh") {
+		capability "Execute"
+        command "setData"
+	}
+    
+	simulator {
+
+	}
+
+	tiles {
+        
+	}
+}
+def parse(String description) {
+
+}
+
+def installed() {
+
+}
+
+def uninstalled() {
+
+}
+
+def updated() {
+
+}
+
+def execute() {
+
+}
+
+def setData(String smartAppName, String userId, String methodName, String capa, String deviceName, String methodType) {
+    if(methodName == "installed") {
+    	sendRequest2(smartAppName, userId)
+    }
+    else {
+    	sendRequest(smartAppName, userId, methodName, capa, deviceName, methodType)
+    }
+}
+
+def setData(String smartAppName, String userId, String methodName, String capa, String deviceName, String methodType, String detail) {
+    if(methodName == "installed") {
+    	sendRequest2(smartAppName, userId, detail)
+    }
+    else {
+    	sendRequest(smartAppName, userId, methodName, capa, deviceName, methodType)
+    }
+}
+
+def setData(String smartAppName, String userId, String methodName, String capa, String deviceName, String methodType, String eventOrActionId, String dependencyId) {   
+    if(methodName == "installed") {
+    	sendRequest2(smartAppName, userId)
+    }
+    else {
+    	sendRequest(smartAppName, userId, methodName, capa, deviceName, methodType, eventOrActionId, dependencyId)
+    }
+}
+
+def setData(String smartAppName, String userId, String methodName, String capa, String deviceName, String methodType, String eventOrActionId, String dependencyId, Map options) {
+    sendRequest(smartAppName, userId, methodName, capa, deviceName, methodType, eventOrActionId, dependencyId)
+}
+
+def setData(String smartAppName, String userId, String methodName, String capa, String deviceName, String methodType, String eventOrActionId, String dependencyId, String userOptions) {
+    def value = userOptions.substring(1, userOptions.length()-1)
+    def value2 = value.split(',')
+    def pass = false
+    
+    if(methodName == "installed") {
+    	sendRequest2(smartAppName, userId)
+    }
+    else {
+    	if(value == "all" || value == "provenance") pass = true
+    	if(methodType.equals("event") || methodType.equals("handlerMethod")) {
+        	value2.each {
+            	if(it.contains("events")) pass = true
+                else {
+                	if(it.contains(methodName)) pass = true
+                }
+            }
+        }
+        if(methodType.equals("action")) {
+        	value2.each {
+            	if(it.contains("actions")) pass = true
+                else {
+                	if(it.contains(methodName)) pass = true
+                }
+            }
+        }
+        if(methodType.equals("methodCall")) {
+        	value2.each {
+            	if(it.contains("methods")) pass = true
+                else {
+                	if(it.contains(methodName)) pass = true
+                }
+            }
+        }
+        if(pass == true) {
+    		sendRequest(smartAppName, userId, methodName, capa, deviceName, methodType, eventOrActionId, dependencyId)
+        }
+        pass = false
+            
+    }
+}
+
+def sendRequest(String smartAppName, String userId, String methodName, String capa, String deviceName, String methodType) {
+	def params = [
+    	uri: "http://your ip address/flows",
+        body: [
+        	appName: smartAppName,
+            userId: userId,
+            methodName: methodName,
+            capability: capa,
+            deviceName: deviceName,
+            methodType: methodType
+        ]
+    ]
+    
+    try {
+    	httpPost(params) { response ->
+            log.debug "success: ${response.headers}"
+            log.debug "response data: ${response}"
+        }
+    }catch(err) {
+    	log.debug "error : ${err}"
+    }
+}
+
+
+def sendRequest(String smartAppName, String userId, String methodName, String capa, String deviceName, String methodType, String eventOrActionId, String dependencyId) {
+	def params = [
+    	uri: "http://your ip address/flows",
+        body: [
+        	appName: smartAppName,
+            userId: userId,
+            methodName: methodName,
+            capability: capa,
+            deviceName: deviceName,
+            methodType: methodType,
+            eventOrActionId: eventOrActionId,
+            dependencyId: dependencyId
+        ]
+    ]
+    
+    try {
+    	httpPost(params) { response ->
+            log.debug "success: ${response.headers}"
+            log.debug "response data: ${response}"
+        }
+    }catch(err) {
+    	log.debug "error : ${err}"
+    }
+}
+
+def sendRequest2(String smartAppName, String userId) {
+	def params = [
+    	uri: "http://your ip address/smartapps",
+        body: [
+        	appName: smartAppName,
+            userId: userId
+        ]
+    ]
+    
+    try {
+    	httpPost(params) { response ->
+        	log.debug "success: ${response.headers}"
+            log.debug "resonse data: ${response}"
+        }
+    }catch(err) {
+    	log.debug "error: ${err}"
+    }
+}
+
+def sendRequest2(String smartAppName, String userId, String detail) {
+	def params = [
+    	uri: "http://your ip address/smartapps",
+        body: [
+        	appName: smartAppName,
+            userId: userId,
+            detail: detail
+        ]
+    ]
+    
+    try {
+    	httpPost(params) { response ->
+        	log.debug "success: ${response.headers}"
+            log.debug "resonse data: ${response}"
+        }
+    }catch(err) {
+    	log.debug "error: ${err}"
+    }
+}

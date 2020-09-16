@@ -422,7 +422,7 @@ async function processNextFindingPattern(appName, userId, type, deviceNames, met
 				returnString2 += JSON.stringify(re);
 				var eOrAId = [];
 				eOrAId.push(re.eventOrActionId);
-				processFindingPattern2(appName, userId, re.id, eOrAId, type2, deviceNames2, methodNames2, function(re2) {
+				processNextFindingPattern2(appName, userId, re.id, eOrAId, type2, deviceNames2, methodNames2, function(re2) {
 					if(returnString == "") returnString += returnString2 + "," + re2;
 					else returnString += "," + returnString2 + "," + re2;
 				});
@@ -459,6 +459,60 @@ function findNextPattern1(appName, userId, type, deviceName, methodName, number,
 	});
 }
 
+async function processNextFindingPattern2(appName, userId, id, eventOrActionId, type, deviceNames, methodNames, callback) {
+	var st = "";
+	var st2 = "";
+	for(var i = 0; i < methodNames.length; i++) {
+		findSubPattern2(appName, userId, id, eventOrActionId, type, deviceNames[i], methodNames[i], st, function(re){
+			if(re != null) {
+				if(st2 == "") {
+					var tempst = JSON.stringify({"patternNo2": i}) + ",";
+					tempst += re;
+				}
+				else {
+					var tempst = "," + JSON.stringify({"patternNo2": i}) + ",";
+					tempst += re;
+				}
+				st2 += tempst;
+			}
+		});
+		await delayCall2();
+	}
+	if(st2 == "") {
+		callback(null);
+	}
+	else {
+		callback(st2);
+	}
+}
+
+function findSubPattern2(appName, userId, id, eventOrActionId, methodType, deviceName, methodName, returnString, callback) {
+	models.Flow.findOne({
+		where : {
+			appName: appName,
+			userId: userId,
+			id: {
+				[Op.gt]: id
+			},
+			dependencyId: {
+				[Op.or]: eventOrActionId
+			}
+		}
+	}).then(function(flows) {
+		if(!flows) callback(null);
+		else  {
+			if(returnString == "") returnString = JSON.stringify(flows);
+			else returnString = returnString + "," + JSON.stringify(flows);
+			if(flows.methodType == methodType && flows.deviceName == deviceName && flows.methodName == methodName) {
+				callback(returnString);
+			}
+			else {
+				eventOrActionId.push(flows.eventOrActionId);
+				findSubPattern2(appName, userId, flows.id, eventOrActionId, methodType, deviceName, methodName, returnString, callback);
+			}
+		}
+	});
+}
 
 
 app.get('/flowsbyUserFindPattern/:appName/:id/pattern1/:fPattern/pattern2/:pPattern', (req, res) => {
@@ -527,17 +581,18 @@ async function delayCall2() {
 }
 async function processFindingPattern(appName, userId, type, deviceNames, methodNames, type2, deviceNames2, methodNames2, callback) {
 	var returnString = "";
-	for(var i = 0; i < methodNames.length; i++) {
-		findPattern1(appName, userId, type, deviceNames[i], methodNames[i], function(re) {
+	for(var i = 0; i < methodNames2.length; i++) {
+		findPattern1(appName, userId, type2, deviceNames2[i], methodNames2[i], function(re) {
 			if(re != null) {
-				var returnString2  = JSON.stringify({"patternNo": i}) + ",";
+				//var returnString2  = JSON.stringify({"patternNo": i}) + ",";
+				var returnString2 = "";
 				returnString2 += JSON.stringify(re);
 				var eOrAId = [];
 				eOrAId.push(re.eventOrActionId);
 				eOrAId.push(re.dependencyId);
-				processFindingPattern2(appName, userId, re.id, eOrAId, type2, deviceNames2, methodNames2, function(re2) {
-					if(returnString == "" ) returnString += returnString2 + "," + re2;
-					else returnString += "," + returnString2 + "," + re2;
+				processFindingPattern2(appName, userId, re.id, eOrAId, type, deviceNames, methodNames, function(re2) {
+					if(returnString == "" ) returnString += re2 + ","  + returnString2;// + "," + re2;
+					else returnString += "," + re2 + "," + returnString2;// + "," + re2;
 				});
 			}
 		});
@@ -558,11 +613,13 @@ async function processFindingPattern2(appName, userId, id, eventOrActionId, type
 		findSubPattern(appName, userId, id, eventOrActionId, type, deviceNames[i], methodNames[i], st, function(re){
 			if(re != null) {
 				if(st2 == "") {
-					var tempst = JSON.stringify({"patternNo2": i}) + ",";
+					//var tempst = JSON.stringify({"patternNo2": i}) + ",";
+					var tempst = "";
 					tempst += re;
 				}
 				else {
-					var tempst = "," + JSON.stringify({"patternNo2": i}) + ",";
+					//var tempst = "," + JSON.stringify({"patternNo2": i}) + ",";
+					var tempst = ",";
 					tempst += re;
 				}
 				st2 += tempst;
@@ -603,22 +660,23 @@ function findSubPattern(appName, userId, id, eventOrActionId, methodType, device
 				appName: appName,
 				userId: userId,
 				id: {
-					[Op.gt]: id
+					[Op.lt]: id
 				},
-				dependencyId: {
+				eventOrActionId: {
 					[Op.or]: eventOrActionId
 				}
-			}
+			},
+			order : [['id', 'DESC']]
 		}).then(function(flows) {
 			if(!flows) callback(null);
 			else  {
 				if(returnString == "") returnString = JSON.stringify(flows);
-				else returnString = returnString + "," + JSON.stringify(flows);
+				else returnString = JSON.stringify(flows) + "," + returnString;// + "," + JSON.stringify(flows);
 				if(flows.methodType == methodType && flows.deviceName == deviceName && flows.methodName == methodName) {
 					callback(returnString);
 				}
 				else {
-					eventOrActionId.push(flows.eventOrActionId);
+					eventOrActionId.push(flows.dependencyId);
 					findSubPattern(appName, userId, flows.id, eventOrActionId, methodType, deviceName, methodName, returnString, callback);
 				}
 			}

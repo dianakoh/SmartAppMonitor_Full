@@ -1,20 +1,22 @@
+const DBcon = require('./config')
 const Sequelize = require('sequelize');
+const DBConnect = DBcon.DBcon;
 const sequelize = new Sequelize(
-				'smartAppMonitorDB', 
-				'sllab', 
-				'403a403a^^', {
-				'host': 'localhost',
-				'port': 3337,
-				'dialect' : 'mysql',
-				
-				'pool' : {
-				'max': 5,
-				'min': 0,
-				'acquire': 30000,
-				'idle': 10000
-				},
-				
-				'operatorsAliases': false
+	DBConnect.dbname,
+	DBConnect.user,
+	DBConnect.passwd, {
+	'host': DBConnect.host,
+	'port': DBConnect.port,
+	'dialect': 'mysql',
+
+	'pool': {
+		'max': 5,
+		'min': 0,
+		'acquire': 30000,
+		'idle': 10000
+	},
+
+	'operatorsAliases': false
 });
 
 const Flow = sequelize.define('Flow', {
