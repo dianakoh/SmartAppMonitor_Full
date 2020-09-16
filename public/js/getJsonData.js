@@ -18,6 +18,6 @@ var getJSON = function(url, callback) {
     xhr.send();
 };
 
-var ipAddress = "203.252.195.182:";
+var ipAddress = "ip_address:";
 var port1 = "8080";
 var port2 = "3030";
