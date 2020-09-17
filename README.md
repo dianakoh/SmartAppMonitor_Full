@@ -12,6 +12,7 @@ SmartAppMonitor
 SmartAppMonitor monitors SmartApps in real-time and displays profile data and provenance data.
 
 ![SmartAppMonitor](https://github.com/dianakoh/SmartAppMonitor_Full/blob/master/result.png)
+![codeInstrument](https://github.com/dianakoh/SmartAppMonitor_Full/blob/master/codeIns.png)
 
 > **Note: **
 > - Real-time Monitor helps users immediately see what's happening in their SmartApp.
